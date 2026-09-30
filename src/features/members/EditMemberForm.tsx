@@ -1,381 +1,372 @@
-  import { useState, useEffect } from "react";
-  import { useForm } from "react-hook-form";
-  import { useMutation } from "@tanstack/react-query";
-  import toast from "react-hot-toast";
-  import api from "../../lib/api";
-  import type { Department, Member, MemberFormData } from "../../types";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { useMutation } from "@tanstack/react-query";
+import toast from "react-hot-toast";
+import api from "../../lib/api";
+import type { Department, Member, MemberFormData } from "../../types";
 
-  interface Props {
-    member: Member;
-    departments: Department[];
-    onSuccess: () => void;
-    onCancel: () => void;
-  }
+interface Props {
+  member: Member;
+  departments: Department[];
+  onSuccess: () => void;
+  onCancel: () => void;
+}
 
-  /**
-   * Extract all department IDs from member.departments
-   * Handles both string[] and Department[] formats
-   */
-  function extractDepartmentIds(depts?: (Department | string)[]): string[] {
-    if (!depts || !Array.isArray(depts)) return [];
-    return depts
-      .map((d) => {
-        if (typeof d === "string") return d;
-        if (d && typeof d === "object" && "_id" in d) return d._id;
-        return "";
-      })
-      .filter(Boolean);
-  }
+function extractDepartmentIds(depts?: (Department | string)[]): string[] {
+  if (!depts || !Array.isArray(depts)) return [];
+  return depts
+    .map((d) => {
+      if (typeof d === "string") return d;
+      if (d && typeof d === "object" && "_id" in d) return d._id;
+      return "";
+    })
+    .filter(Boolean);
+}
 
-  export default function EditMemberForm({
-    member,
-    departments,
-    onSuccess,
-    onCancel,
-  }: Props) {
-    // ── Department multi-select state ─────────────────────────────────────────
-    const [selectedDeptIds, setSelectedDeptIds] = useState<string[]>(() =>
-      extractDepartmentIds(member.departments)
-    );
-    const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
-
-    // Sync when member prop changes
-    useEffect(() => {
-      setSelectedDeptIds(extractDepartmentIds(member.departments));
-    }, [member]);
-
-    const toggleDept = (id: string) => {
-      setSelectedDeptIds((prev) =>
-        prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
-      );
-    };
-
-    // ── Form ──────────────────────────────────────────────────────────────────
-    const {
-      register,
-      handleSubmit,
-      formState: { errors },
-      reset,
-    } = useForm<MemberFormData>({
-      defaultValues: {
-        firstName: member.firstName,
-        lastName: member.lastName,
-        email: member.email || "",
-        phone: member.phone || "",
-        gender: member.gender || "male",
-        dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
-        status: member.status,
-        maritalStatus: member.maritalStatus || "single",
-        occupation: member.occupation || "",
-        address: member.address || "",
-        dateJoined: member.dateJoined ? member.dateJoined.split("T")[0] : "",
-      },
-    });
-
-    useEffect(() => {
-      reset({
-        firstName: member.firstName,
-        lastName: member.lastName,
-        email: member.email || "",
-        phone: member.phone || "",
-        gender: member.gender || "male",
-        dateOfBirth: member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
-        status: member.status,
-        maritalStatus: member.maritalStatus || "single",
-        occupation: member.occupation || "",
-        address: member.address || "",
-        dateJoined: member.dateJoined ? member.dateJoined.split("T")[0] : "",
-      });
-    }, [member, reset]);
-
-    // ── Mutation ──────────────────────────────────────────────────────────────
-    const mutation = useMutation({
-      mutationFn: (data: MemberFormData) =>
-        api.patch(`/members/${member._id}`, { ...data, departmentIds: selectedDeptIds }),
-      onSuccess: () => {
-        toast.success("Member updated successfully!");
-        onSuccess();
-      },
-      onError: (err: any) =>
-        toast.error(err.response?.data?.message || "Failed to update member"),
-    });
-
-    const selectedDeptNames = departments
-      .filter((d) => selectedDeptIds.includes(d._id))
-      .map((d) => d.name);
-
-    return (
-      <form
-        onSubmit={handleSubmit((d) => mutation.mutate(d))}
-        className="space-y-4"
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <span
+        className="shrink-0 w-1 h-4 rounded-full"
+        style={{ background: "var(--gold, #b8972e)" }}
+      />
+      <p
+        className="text-xs font-bold tracking-widest uppercase"
+        style={{ color: "var(--gold, #b8972e)" }}
       >
-        <style>{`
-          @keyframes inputFocus {
-            from { box-shadow: 0 0 0 0 rgba(218, 165, 32, 0.1); }
-            to { box-shadow: 0 0 0 4px rgba(218, 165, 32, 0.1); }
-          }
-          .edit-form input:focus,
-          .edit-form select:focus {
-            animation: inputFocus 0.3s ease-out;
-          }
-          .form-field { transition: all 0.2s ease; }
-          .form-field:focus-within { transform: translateY(-1px); }
-          .dept-dropdown { animation: fadeIn 0.15s ease; }
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-4px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-        `}</style>
+        {children}
+      </p>
+      <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+    </div>
+  );
+}
 
-        <div className="bg-blue-500/5 border border-blue-500/20 rounded-lg p-3 mb-4">
-          <p className="text-blue-400 text-xs font-medium">
-            💡 Tip: All changes are saved to the database
-          </p>
+// A unified input class that ensures legibility in both light and dark modes
+const inp =
+  "w-full rounded-md border border-gray-300 dark:border-gray-600 " +
+  "bg-white dark:bg-gray-800 " +
+  "text-gray-900 dark:text-gray-100 " +
+  "text-sm px-3 py-1.5 " +
+  "placeholder:text-gray-400 dark:placeholder:text-gray-500 " +
+  "focus:outline-none focus:ring-2 focus:ring-yellow-500/40 focus:border-yellow-500 " +
+  "transition-colors duration-150";
+
+// Shared label style
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="block text-xs font-semibold text-gray-600 dark:text-gray-300 mb-1 tracking-wide">
+      {children}
+    </label>
+  );
+}
+
+// Error message helper
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p className="text-red-500 dark:text-red-400 text-xs mt-0.5">{message}</p>;
+}
+
+export default function EditMemberForm({ member, departments, onSuccess, onCancel }: Props) {
+  const [selectedDeptIds, setSelectedDeptIds] = useState<string[]>(() =>
+    extractDepartmentIds(member.departments)
+  );
+  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    setSelectedDeptIds(extractDepartmentIds(member.departments));
+  }, [member]);
+
+  const toggleDept = (id: string) => {
+    setSelectedDeptIds((prev) =>
+      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
+    );
+  };
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm<MemberFormData>({
+    defaultValues: {
+      firstName:     member.firstName,
+      lastName:      member.lastName,
+      email:         member.email || "",
+      phone:         member.phone || "",
+      gender:        member.gender || "male",
+      dateOfBirth:   member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
+      status:        member.status,
+      maritalStatus: member.maritalStatus || "single",
+      occupation:    member.occupation || "",
+      address:       member.address || "",
+      dateJoined:    member.dateJoined ? member.dateJoined.split("T")[0] : "",
+    },
+  });
+
+  useEffect(() => {
+    reset({
+      firstName:     member.firstName,
+      lastName:      member.lastName,
+      email:         member.email || "",
+      phone:         member.phone || "",
+      gender:        member.gender || "male",
+      dateOfBirth:   member.dateOfBirth ? member.dateOfBirth.split("T")[0] : "",
+      status:        member.status,
+      maritalStatus: member.maritalStatus || "single",
+      occupation:    member.occupation || "",
+      address:       member.address || "",
+      dateJoined:    member.dateJoined ? member.dateJoined.split("T")[0] : "",
+    });
+  }, [member, reset]);
+
+  const mutation = useMutation({
+    mutationFn: (data: MemberFormData) =>
+      api.patch(`/members/${member._id}`, { ...data, departmentIds: selectedDeptIds }),
+    onSuccess: () => {
+      toast.success("Member updated successfully!");
+      onSuccess();
+    },
+    onError: (err: any) =>
+      toast.error(err.response?.data?.message || "Failed to update member"),
+  });
+
+  const selectedDeptNames = departments
+    .filter((d) => selectedDeptIds.includes(d._id))
+    .map((d) => d.name);
+
+  return (
+    <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-6">
+
+      {/* ── Personal ─────────────────────────────────────── */}
+      <section>
+        <SectionLabel>Personal</SectionLabel>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <FieldLabel>First Name *</FieldLabel>
+            <input
+              className={inp}
+              {...register("firstName", { required: "Required" })}
+              placeholder="John"
+            />
+            <FieldError message={errors.firstName?.message} />
+          </div>
+          <div>
+            <FieldLabel>Last Name *</FieldLabel>
+            <input
+              className={inp}
+              {...register("lastName", { required: "Required" })}
+              placeholder="Doe"
+            />
+            <FieldError message={errors.lastName?.message} />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <FieldLabel>Gender</FieldLabel>
+            <select className={inp} {...register("gender")}>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <FieldLabel>Date of Birth</FieldLabel>
+            <input type="date" className={inp} {...register("dateOfBirth")} />
+          </div>
+          <div>
+            <FieldLabel>Marital Status</FieldLabel>
+            <select className={inp} {...register("maritalStatus")}>
+              {["single", "married", "divorced", "widowed"].map((s) => (
+                <option key={s} value={s}>
+                  {s.charAt(0).toUpperCase() + s.slice(1)}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Contact ──────────────────────────────────────── */}
+      <section>
+        <SectionLabel>Contact</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <FieldLabel>Email</FieldLabel>
+            <input
+              type="email"
+              className={inp}
+              {...register("email")}
+              placeholder="john@example.com"
+            />
+          </div>
+          <div>
+            <FieldLabel>Phone</FieldLabel>
+            <input
+              className={inp}
+              {...register("phone")}
+              placeholder="08012345678"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Church ───────────────────────────────────────── */}
+      <section>
+        <SectionLabel>Church</SectionLabel>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <FieldLabel>Status</FieldLabel>
+            <select className={inp} {...register("status")}>
+              {["member", "worker", "leader", "new_convert", "first_timer", "visitor", "archived"].map((s) => (
+                <option key={s} value={s}>
+                  {s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <FieldLabel>Date Joined</FieldLabel>
+            <input type="date" className={inp} {...register("dateJoined")} />
+          </div>
         </div>
 
-        <div className="edit-form space-y-4">
-          {/* Names Row */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="form-field">
-              <label className="label">First Name *</label>
-              <input
-                className="input transition-all duration-200"
-                {...register("firstName", { required: "First name is required" })}
-                placeholder="John"
-              />
-              {errors.firstName && (
-                <p className="text-red-400 text-xs mt-1">{errors.firstName.message}</p>
-              )}
-            </div>
-            <div className="form-field">
-              <label className="label">Last Name *</label>
-              <input
-                className="input transition-all duration-200"
-                {...register("lastName", { required: "Last name is required" })}
-                placeholder="Doe"
-              />
-              {errors.lastName && (
-                <p className="text-red-400 text-xs mt-1">{errors.lastName.message}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Contact Row */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="form-field">
-              <label className="label">Email</label>
-              <input
-                type="email"
-                className="input transition-all duration-200"
-                {...register("email")}
-                placeholder="john@example.com"
-              />
-            </div>
-            <div className="form-field">
-              <label className="label">Phone</label>
-              <input
-                className="input transition-all duration-200"
-                {...register("phone")}
-                placeholder="08012345678"
-              />
-            </div>
-          </div>
-
-          {/* Demographics Row */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="form-field">
-              <label className="label">Gender</label>
-              <select className="input transition-all duration-200" {...register("gender")}>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-            <div className="form-field">
-              <label className="label">Status</label>
-              <select className="input transition-all duration-200" {...register("status")}>
-                {["member","worker","leader","new_convert","first_timer","visitor","archived"].map((s) => (
-                  <option key={s} value={s}>
-                    {s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="form-field">
-              <label className="label">Marital Status</label>
-              <select className="input transition-all duration-200" {...register("maritalStatus")}>
-                {["single", "married", "divorced", "widowed"].map((s) => (
-                  <option key={s} value={s}>
-                    {s.charAt(0).toUpperCase() + s.slice(1)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Dates Row */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="form-field">
-              <label className="label">Date of Birth</label>
-              <input
-                type="date"
-                className="input transition-all duration-200"
-                {...register("dateOfBirth")}
-              />
-            </div>
-            <div className="form-field">
-              <label className="label">Date Joined</label>
-              <input
-                type="date"
-                className="input transition-all duration-200"
-                {...register("dateJoined")}
-              />
-            </div>
-          </div>
-
-          {/* ── Multi-Department Picker ── */}
-          <div className="form-field relative">
-            <label className="label">Departments</label>
-            <button
-              type="button"
-              onClick={() => setDeptDropdownOpen((o) => !o)}
-              className="input transition-all duration-200 w-full text-left flex items-center justify-between"
+        {/* Departments multi-select */}
+        <div className="relative">
+          <FieldLabel>Departments</FieldLabel>
+          <button
+            type="button"
+            onClick={() => setDeptDropdownOpen((o) => !o)}
+            className={`${inp} flex items-center justify-between cursor-pointer`}
+          >
+            <span
+              className={
+                selectedDeptIds.length === 0
+                  ? "text-gray-400 dark:text-gray-500"
+                  : "text-gray-900 dark:text-gray-100 truncate pr-2"
+              }
             >
-              <span className={selectedDeptIds.length === 0 ? "text-gray-400" : ""}>
-                {selectedDeptIds.length === 0
-                  ? "Select departments..."
-                  : `${selectedDeptIds.length} selected`}
-              </span>
-              <svg
-                className={`w-4 h-4 transition-transform duration-200 ${deptDropdownOpen ? "rotate-180" : ""}`}
-                fill="none" stroke="currentColor" viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
+              {selectedDeptIds.length === 0
+                ? "Select departments…"
+                : selectedDeptNames.join(", ")}
+            </span>
+            <svg
+              className={`w-3.5 h-3.5 shrink-0 text-gray-500 transition-transform duration-150 ${
+                deptDropdownOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-            {/* Selected tags */}
-            {selectedDeptNames.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {selectedDeptNames.map((name, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                    style={{
-                      background: "rgba(218,165,32,0.15)",
-                      color: "#DAA520",
-                      border: "1px solid rgba(218,165,32,0.3)",
-                    }}
+          {deptDropdownOpen && (
+            <div className="absolute z-50 w-full mt-1 max-h-44 overflow-y-auto rounded-md border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-lg">
+              {departments?.length === 0 && (
+                <p className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400">
+                  No departments available
+                </p>
+              )}
+              {departments?.map((d) => {
+                const checked = selectedDeptIds.includes(d._id);
+                return (
+                  <label
+                    key={d._id}
+                    className="flex items-center gap-2.5 px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
-                    {name}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        toggleDept(
-                          departments.find((d) => d.name === name)?._id || ""
-                        )
-                      }
-                      className="hover:opacity-70 transition-opacity"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Dropdown */}
-            {deptDropdownOpen && (
-              <div
-                className="dept-dropdown absolute z-50 w-full mt-1 rounded-lg border overflow-hidden shadow-xl"
-                style={{
-                  background: "var(--bg-card, #1a1a2e)",
-                  borderColor: "var(--border, rgba(255,255,255,0.1))",
-                }}
-              >
-                {departments?.length === 0 && (
-                  <p className="px-3 py-2 text-xs text-gray-400">No departments available</p>
-                )}
-                {departments?.map((d) => {
-                  const checked = selectedDeptIds.includes(d._id);
-                  return (
-                    <label
-                      key={d._id}
-                      className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/5 transition-colors duration-150"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleDept(d._id)}
-                        className="w-4 h-4 rounded accent-yellow-500"
-                      />
-                      <span className="text-sm">{d.name}</span>
-                      {checked && (
-                        <span className="ml-auto text-xs" style={{ color: "#DAA520" }}>✓</span>
-                      )}
-                    </label>
-                  );
-                })}
-                <div
-                  className="px-3 py-2 border-t"
-                  style={{ borderColor: "var(--border, rgba(255,255,255,0.1))" }}
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleDept(d._id)}
+                      className="w-3.5 h-3.5 rounded accent-yellow-500"
+                    />
+                    <span className="text-sm text-gray-800 dark:text-gray-200">{d.name}</span>
+                    {checked && (
+                      <span className="ml-auto text-yellow-600 dark:text-yellow-400 text-xs font-semibold">
+                        ✓
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
+              <div className="px-3 py-1.5 border-t border-gray-100 dark:border-gray-700">
+                <button
+                  type="button"
+                  onClick={() => setDeptDropdownOpen(false)}
+                  className="text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 font-medium transition-colors"
                 >
-                  <button
-                    type="button"
-                    onClick={() => setDeptDropdownOpen(false)}
-                    className="text-xs text-gray-400 hover:text-white transition-colors"
-                  >
-                    Done
-                  </button>
-                </div>
+                  Done
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+        </div>
+      </section>
 
-          {/* Additional Info */}
-          <div className="form-field">
-            <label className="label">Occupation</label>
+      {/* ── Other ────────────────────────────────────────── */}
+      <section>
+        <SectionLabel>Other</SectionLabel>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <FieldLabel>Occupation</FieldLabel>
             <input
-              className="input transition-all duration-200"
+              className={inp}
               {...register("occupation")}
               placeholder="Software Engineer"
             />
           </div>
-
-          <div className="form-field">
-            <label className="label">Address</label>
+          <div>
+            <FieldLabel>Address</FieldLabel>
             <input
-              className="input transition-all duration-200"
+              className={inp}
               {...register("address")}
               placeholder="123 Church Street, Lagos"
             />
           </div>
         </div>
+      </section>
 
-        {/* Form Actions */}
-        <div className="flex justify-end gap-3 pt-6 border-t border-bg-border">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="btn-ghost hover:bg-bg-hover transition-colors duration-200"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={mutation.isPending}
-            className="btn-gold flex items-center justify-center gap-2 hover:shadow-lg transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {mutation.isPending ? (
-              <>
-                <span className="inline-block w-4 h-4 border-2 border-gold border-t-transparent rounded-full animate-spin"></span>
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </button>
-        </div>
-      </form>
-    );
-  }
+      {/* ── Actions ──────────────────────────────────────── */}
+      <div className="flex justify-end gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="
+            px-4 py-1.5 text-sm font-medium rounded-md
+            text-gray-600 dark:text-gray-300
+            border border-gray-300 dark:border-gray-600
+            bg-transparent
+            hover:bg-gray-100 dark:hover:bg-gray-700
+            transition-colors duration-150
+          "
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={mutation.isPending}
+          className="
+            flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold rounded-md
+            text-white
+            disabled:opacity-60 disabled:cursor-not-allowed
+            transition-colors duration-150
+          "
+          style={{ background: "var(--gold, #b8972e)" }}
+        >
+          {mutation.isPending ? (
+            <>
+              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
+              </svg>
+              Saving…
+            </>
+          ) : (
+            "Save Changes"
+          )}
+        </button>
+      </div>
+    </form>
+  );
+}

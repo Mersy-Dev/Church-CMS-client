@@ -24,9 +24,18 @@ interface Family {
   createdAt: string;
 }
 
+// ── Word House palette: navy dominant, crimson accent, supporting tones
 const FAMILY_COLORS = [
-  '#DAA520', '#e05c5c', '#5c9ee0', '#5ce08a', '#c05ce0',
-  '#e08a5c', '#5ce0d8', '#e0c05c', '#8a5ce0', '#5ce06e',
+  '#1A56A0', // Navy (dominant)
+  '#C41E3A', // Crimson (accent)
+  '#1E7ABF', // Sky blue
+  '#0F3D6E', // Deep navy
+  '#2E8B57', // Forest green
+  '#1A56A0', // Navy repeat
+  '#7B3FA0', // Purple
+  '#C47A1E', // Amber
+  '#C41E3A', // Crimson repeat
+  '#1E7ABF', // Sky blue repeat
 ];
 
 export default function FamiliesPage() {
@@ -70,9 +79,14 @@ export default function FamiliesPage() {
   return (
     <div className="space-y-6">
       <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+
         @keyframes cardReveal {
           from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .family-card {
           animation: cardReveal 0.3s ease both;
@@ -80,7 +94,7 @@ export default function FamiliesPage() {
         }
         .family-card:hover {
           transform: translateY(-3px);
-          box-shadow: 0 12px 32px rgba(0,0,0,0.3);
+          box-shadow: 0 12px 32px rgba(26,86,160,0.2);
         }
         .family-card:nth-child(1) { animation-delay: 0.04s; }
         .family-card:nth-child(2) { animation-delay: 0.08s; }
@@ -91,10 +105,29 @@ export default function FamiliesPage() {
         .family-card:nth-child(7) { animation-delay: 0.28s; }
         .family-card:nth-child(8) { animation-delay: 0.32s; }
         .family-card:nth-child(9) { animation-delay: 0.36s; }
+
         .stat-pill {
           display: inline-flex; align-items: center; gap: 4px;
           padding: 2px 8px; border-radius: 999px;
           font-size: 11px; font-weight: 600;
+        }
+
+        /* Create Family button: navy */
+        .btn-navy {
+          background: #1A56A0;
+          color: #fff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          display: inline-flex; align-items: center; gap: 6px;
+          transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-navy:hover {
+          background: #164882;
+          box-shadow: 0 4px 16px rgba(26,86,160,0.35);
         }
       `}</style>
 
@@ -106,10 +139,7 @@ export default function FamiliesPage() {
             {data?.total ?? 0} church {(data?.total ?? 0) !== 1 ? 'families' : 'family'}
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="btn-gold flex items-center gap-2"
-        >
+        <button onClick={() => setShowCreate(true)} className="btn-navy">
           <Plus size={15} /> Create Family
         </button>
       </div>
@@ -118,17 +148,17 @@ export default function FamiliesPage() {
       {statsData && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { label: 'Total Families', value: statsData.totalFamilies, color: '#DAA520' },
-            { label: 'Members in Families', value: statsData.totalMembersInFamilies, color: '#5c9ee0' },
-            { label: 'Avg Members / Family', value: statsData.avgMembersPerFamily, color: '#5ce08a' },
-            { label: 'Total Activities', value: statsData.totalActivities, color: '#c05ce0' },
+            { label: 'Total Families',       value: statsData.totalFamilies,          color: '#1A56A0' }, // navy
+            { label: 'Members in Families',  value: statsData.totalMembersInFamilies, color: '#4A8FD4' }, // light navy
+            { label: 'Avg Members / Family', value: statsData.avgMembersPerFamily,    color: '#C41E3A' }, // crimson
+            { label: 'Total Activities',     value: statsData.totalActivities,        color: '#2E8B57' }, // green (functional)
           ].map((s, i) => (
             <div
               key={i}
               className="rounded-xl p-4"
               style={{
                 background: 'var(--bg-card, rgba(255,255,255,0.04))',
-                border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
+                border: `1px solid ${s.color}22`,
               }}
             >
               <p className="text-xs text-text-muted mb-1">{s.label}</p>
@@ -147,7 +177,7 @@ export default function FamiliesPage() {
           title="No families yet"
           description="Create your first church family"
           action={
-            <button onClick={() => setShowCreate(true)} className="btn-gold">
+            <button onClick={() => setShowCreate(true)} className="btn-navy">
               Create Family
             </button>
           }
@@ -162,7 +192,7 @@ export default function FamiliesPage() {
                 className="family-card rounded-2xl overflow-hidden cursor-pointer"
                 style={{
                   background: 'var(--bg-card, rgba(255,255,255,0.04))',
-                  border: `1px solid var(--bg-border, rgba(255,255,255,0.08))`,
+                  border: `1px solid ${color}28`,
                 }}
                 onClick={() => navigate(`/families/${family._id}`)}
               >
@@ -197,7 +227,8 @@ export default function FamiliesPage() {
                   <div className="space-y-2">
                     {family.headId && (
                       <div className="flex items-center gap-2">
-                        <Crown size={11} style={{ color: '#DAA520' }} />
+                        {/* Crown: crimson accent */}
+                        <Crown size={11} style={{ color: '#C41E3A' }} />
                         <Avatar
                           name={`${family.headId.firstName} ${family.headId.lastName}`}
                           photoUrl={family.headId.photoUrl}
@@ -206,17 +237,16 @@ export default function FamiliesPage() {
                         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                           {family.headId.firstName} {family.headId.lastName}
                         </span>
-                        <span
-                          className="text-xs ml-auto"
-                          style={{ color: '#DAA520' }}
-                        >
+                        {/* "Head" label: crimson */}
+                        <span className="text-xs ml-auto" style={{ color: '#C41E3A' }}>
                           Head
                         </span>
                       </div>
                     )}
                     {family.assistantHeadId && (
                       <div className="flex items-center gap-2">
-                        <Shield size={11} style={{ color: '#5c9ee0' }} />
+                        {/* Shield: navy */}
+                        <Shield size={11} style={{ color: '#1A56A0' }} />
                         <Avatar
                           name={`${family.assistantHeadId.firstName} ${family.assistantHeadId.lastName}`}
                           photoUrl={family.assistantHeadId.photoUrl}
@@ -225,7 +255,8 @@ export default function FamiliesPage() {
                         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                           {family.assistantHeadId.firstName} {family.assistantHeadId.lastName}
                         </span>
-                        <span className="text-xs ml-auto" style={{ color: '#5c9ee0' }}>
+                        {/* "Asst." label: navy */}
+                        <span className="text-xs ml-auto" style={{ color: '#4A8FD4' }}>
                           Asst.
                         </span>
                       </div>
@@ -234,10 +265,7 @@ export default function FamiliesPage() {
 
                   {/* Stats pills */}
                   <div className="flex flex-wrap gap-2 pt-1">
-                    <span
-                      className="stat-pill"
-                      style={{ background: `${color}14`, color }}
-                    >
+                    <span className="stat-pill" style={{ background: `${color}14`, color }}>
                       <Users size={10} /> {family.memberCount} members
                     </span>
                     {family.activityCount > 0 && (
@@ -261,12 +289,12 @@ export default function FamiliesPage() {
                   {/* Actions */}
                   <div
                     className="flex items-center justify-between pt-2"
-                    style={{ borderTop: '1px solid var(--bg-border, rgba(255,255,255,0.06))' }}
+                    style={{ borderTop: `1px solid ${color}18` }}
                     onClick={(e) => e.stopPropagation()}
                   >
                     <button
                       onClick={() => navigate(`/families/${family._id}`)}
-                      className="flex items-center gap-1.5 text-xs font-medium transition-colors hover:opacity-80"
+                      className="flex items-center gap-1.5 text-xs font-medium transition-opacity hover:opacity-70"
                       style={{ color }}
                     >
                       <Eye size={13} /> View Details
@@ -286,12 +314,7 @@ export default function FamiliesPage() {
       )}
 
       {/* Create Modal */}
-      <Modal
-        isOpen={showCreate}
-        onClose={() => setShowCreate(false)}
-        title="Create Family"
-        size="md"
-      >
+      <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create Family" size="md">
         <CreateFamilyForm
           onSuccess={() => {
             setShowCreate(false);
@@ -303,12 +326,7 @@ export default function FamiliesPage() {
       </Modal>
 
       {/* Delete Confirm */}
-      <Modal
-        isOpen={!!deleting}
-        onClose={() => setDeleting(null)}
-        title="Delete Family"
-        size="sm"
-      >
+      <Modal isOpen={!!deleting} onClose={() => setDeleting(null)} title="Delete Family" size="sm">
         <p className="text-text-secondary mb-5">
           Are you sure? All family data including activities, prayer requests and announcements will be removed.
         </p>

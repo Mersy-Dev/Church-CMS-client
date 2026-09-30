@@ -46,14 +46,15 @@ interface Family {
   announcements: Announcement[];
 }
 
+// ── Activity types: updated to navy/crimson palette ───────────────────────────
 const ACTIVITY_TYPES: Record<string, { label: string; color: string }> = {
-  outreach:       { label: 'Outreach',       color: '#5c9ee0' },
-  get_together:   { label: 'Get Together',   color: '#DAA520' },
-  prayer_meeting: { label: 'Prayer Meeting', color: '#c05ce0' },
-  bible_study:    { label: 'Bible Study',    color: '#5ce08a' },
-  picnic:         { label: 'Picnic',         color: '#e08a5c' },
-  fundraiser:     { label: 'Fundraiser',     color: '#e05c5c' },
-  other:          { label: 'Other',          color: '#888' },
+  outreach:       { label: 'Outreach',       color: '#1A56A0' }, // navy
+  get_together:   { label: 'Get Together',   color: '#C41E3A' }, // crimson
+  prayer_meeting: { label: 'Prayer Meeting', color: '#4A8FD4' }, // light navy
+  bible_study:    { label: 'Bible Study',    color: '#2E8B57' }, // green
+  picnic:         { label: 'Picnic',         color: '#C47A1E' }, // amber
+  fundraiser:     { label: 'Fundraiser',     color: '#7B3FA0' }, // purple
+  other:          { label: 'Other',          color: '#888'    },
 };
 
 function fmt(date?: string) {
@@ -61,13 +62,14 @@ function fmt(date?: string) {
   try { return format(new Date(date), 'dd MMM yyyy'); } catch { return '—'; }
 }
 
+// Tab component: navy active state (was gold)
 function Tab({ label, icon, active, count, onClick }: any) {
   return (
     <button
       onClick={onClick}
       className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-150"
       style={active
-        ? { background: 'rgba(218,165,32,0.12)', color: '#DAA520', border: '1px solid rgba(218,165,32,0.25)' }
+        ? { background: 'rgba(26,86,160,0.14)', color: '#4A8FD4', border: '1px solid rgba(26,86,160,0.3)' }
         : { color: 'var(--text-muted)', border: '1px solid transparent' }
       }
     >
@@ -77,7 +79,7 @@ function Tab({ label, icon, active, count, onClick }: any) {
         <span
           className="text-xs px-1.5 py-0.5 rounded-full font-bold"
           style={active
-            ? { background: 'rgba(218,165,32,0.2)', color: '#DAA520' }
+            ? { background: 'rgba(26,86,160,0.2)', color: '#4A8FD4' }
             : { background: 'rgba(255,255,255,0.08)', color: 'var(--text-muted)' }
           }
         >
@@ -88,7 +90,7 @@ function Tab({ label, icon, active, count, onClick }: any) {
   );
 }
 
-// ── Member Search Picker (inline, no dropdown — full list with search bar) ────
+// ── Member Search Picker ───────────────────────────────────────────────────────
 function MemberSearchPicker({
   members,
   existingMemberIds,
@@ -101,7 +103,6 @@ function MemberSearchPicker({
   const [search, setSearch] = useState('');
 
   const filtered = members.filter((m) => {
-    // Hide already-in-family members
     if (existingMemberIds.includes(m._id)) return false;
     if (!search) return true;
     const q = search.toLowerCase();
@@ -115,12 +116,11 @@ function MemberSearchPicker({
 
   return (
     <div className="space-y-3">
-      {/* Search input */}
       <div
         className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
-        style={{ background: 'var(--bg-hover, rgba(255,255,255,0.05))', border: '1px solid var(--bg-border)' }}
+        style={{ background: 'var(--bg-hover, rgba(255,255,255,0.05))', border: '1px solid rgba(26,86,160,0.25)' }}
       >
-        <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+        <Search size={14} style={{ color: '#1A56A0', flexShrink: 0 }} />
         <input
           autoFocus
           type="text"
@@ -137,12 +137,11 @@ function MemberSearchPicker({
         )}
       </div>
 
-      {/* Results list */}
       <div
         className="rounded-xl overflow-hidden overflow-y-auto"
         style={{
           maxHeight: 280,
-          border: '1px solid var(--bg-border)',
+          border: '1px solid rgba(26,86,160,0.2)',
           background: 'var(--bg-card)',
         }}
       >
@@ -157,13 +156,9 @@ function MemberSearchPicker({
               type="button"
               onClick={() => onSelect(m)}
               className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-white/5"
-              style={{ borderBottom: '1px solid var(--bg-border, rgba(255,255,255,0.04))' }}
+              style={{ borderBottom: '1px solid rgba(26,86,160,0.1)' }}
             >
-              <Avatar
-                name={`${m.firstName} ${m.lastName}`}
-                photoUrl={m.photoUrl}
-                size="sm"
-              />
+              <Avatar name={`${m.firstName} ${m.lastName}`} photoUrl={m.photoUrl} size="sm" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate" style={{ color: 'var(--text-primary)' }}>
                   {m.firstName} {m.lastName}
@@ -212,7 +207,6 @@ export default function FamilyDetailPage() {
     enabled: !!id,
   });
 
-  // All members for the picker (only fetched when add modal is open)
   const { data: allMembers = [] } = useQuery<Member[]>({
     queryKey: ['members-dropdown'],
     queryFn: async () => {
@@ -289,28 +283,75 @@ export default function FamilyDetailPage() {
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
       <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
         .slide-up { animation: slideUp 0.3s ease both; }
         .prayer-card { transition: all 0.2s ease; }
         .prayer-card:hover { background: rgba(255,255,255,0.04); }
+
+        /* Action buttons: navy */
+        .btn-navy {
+          background: #1A56A0;
+          color: #fff;
+          border: none;
+          padding: 7px 14px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 13px;
+          cursor: pointer;
+          display: inline-flex; align-items: center; gap: 6px;
+          transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-navy:hover:not(:disabled) {
+          background: #164882;
+          box-shadow: 0 4px 14px rgba(26,86,160,0.35);
+        }
+        .btn-navy:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Back button hover */
+        .back-btn:hover { color: #4A8FD4 !important; }
+
+        /* Announcement pinned border: navy (was gold) */
+        .pinned-card { border-color: rgba(26,86,160,0.35) !important; }
+
+        /* Membership ID: navy */
+        .member-id { color: #4A8FD4; }
+
+        /* Checkbox: navy */
+        .navy-checkbox { accent-color: #1A56A0; }
       `}</style>
 
+      {/* Back */}
       <button
         onClick={() => navigate('/families')}
-        className="flex items-center gap-2 text-sm transition-opacity hover:opacity-70"
+        className="back-btn flex items-center gap-2 text-sm transition-colors"
         style={{ color: 'var(--text-muted)' }}
       >
         <ArrowLeft size={16} /> Back to Families
       </button>
 
       {/* Hero */}
-      <div className="slide-up rounded-2xl p-6" style={{ background: 'var(--bg-card, rgba(255,255,255,0.04))', border: '1px solid var(--bg-border, rgba(255,255,255,0.08))' }}>
+      <div
+        className="slide-up rounded-2xl p-6"
+        style={{
+          background: 'var(--bg-card, rgba(255,255,255,0.04))',
+          border: '1px solid rgba(26,86,160,0.25)',
+          boxShadow: '0 4px 24px rgba(26,86,160,0.08)',
+        }}
+      >
         <div className="flex flex-col sm:flex-row gap-5">
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold flex-shrink-0"
-            style={{ background: 'rgba(218,165,32,0.12)', color: '#DAA520', border: '1px solid rgba(218,165,32,0.2)' }}>
+          {/* Family initial avatar: navy (was gold) */}
+          <div
+            className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold flex-shrink-0"
+            style={{ background: 'rgba(26,86,160,0.14)', color: '#4A8FD4', border: '1px solid rgba(26,86,160,0.3)' }}
+          >
             {family.familyName.charAt(0)}
           </div>
           <div className="flex-1 space-y-3">
@@ -318,34 +359,38 @@ export default function FamilyDetailPage() {
               <h1 className="font-display font-bold text-2xl" style={{ color: 'var(--text-primary)' }}>{family.familyName}</h1>
               {(family.city || family.address) && (
                 <p className="flex items-center gap-1.5 text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-                  <MapPin size={13} /> {[family.address, family.city, family.state].filter(Boolean).join(', ')}
+                  <MapPin size={13} style={{ color: '#1A56A0' }} />
+                  {[family.address, family.city, family.state].filter(Boolean).join(', ')}
                 </p>
               )}
             </div>
             <div className="flex flex-wrap gap-4">
               {family.headId && (
                 <div className="flex items-center gap-2">
-                  <Crown size={13} style={{ color: '#DAA520' }} />
+                  {/* Crown: crimson accent */}
+                  <Crown size={13} style={{ color: '#C41E3A' }} />
                   <Avatar name={`${family.headId.firstName} ${family.headId.lastName}`} photoUrl={family.headId.photoUrl} size="xs" />
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{family.headId.firstName} {family.headId.lastName}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(218,165,32,0.1)', color: '#DAA520' }}>Head</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(196,30,58,0.1)', color: '#C41E3A' }}>Head</span>
                 </div>
               )}
               {family.assistantHeadId && (
                 <div className="flex items-center gap-2">
-                  <Shield size={13} style={{ color: '#5c9ee0' }} />
+                  {/* Shield: navy */}
+                  <Shield size={13} style={{ color: '#1A56A0' }} />
                   <Avatar name={`${family.assistantHeadId.firstName} ${family.assistantHeadId.lastName}`} photoUrl={family.assistantHeadId.photoUrl} size="xs" />
                   <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>{family.assistantHeadId.firstName} {family.assistantHeadId.lastName}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(92,158,224,0.1)', color: '#5c9ee0' }}>Assistant</span>
+                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(26,86,160,0.1)', color: '#4A8FD4' }}>Assistant</span>
                 </div>
               )}
             </div>
+            {/* Stat pills: navy/crimson palette */}
             <div className="flex flex-wrap gap-3">
               {[
-                { label: `${family.members?.length ?? 0} Members`, color: '#DAA520' },
-                { label: `${family.activities?.length ?? 0} Activities`, color: '#5c9ee0' },
-                { label: `${family.prayerRequests?.filter(p => !p.isAnswered).length ?? 0} Open Prayers`, color: '#c05ce0' },
-                { label: `${family.announcements?.length ?? 0} Announcements`, color: '#5ce08a' },
+                { label: `${family.members?.length ?? 0} Members`,                                         color: '#1A56A0' },
+                { label: `${family.activities?.length ?? 0} Activities`,                                   color: '#4A8FD4' },
+                { label: `${family.prayerRequests?.filter(p => !p.isAnswered).length ?? 0} Open Prayers`, color: '#C41E3A' },
+                { label: `${family.announcements?.length ?? 0} Announcements`,                            color: '#2E8B57' },
               ].map((s, i) => (
                 <span key={i} className="text-xs px-2.5 py-1 rounded-full font-medium"
                   style={{ background: `${s.color}14`, color: s.color, border: `1px solid ${s.color}28` }}>
@@ -357,7 +402,7 @@ export default function FamilyDetailPage() {
         </div>
         {family.notes && (
           <div className="mt-4 p-3 rounded-xl text-sm"
-            style={{ background: 'rgba(255,255,255,0.03)', color: 'var(--text-secondary)', border: '1px solid var(--bg-border)' }}>
+            style={{ background: 'rgba(26,86,160,0.05)', color: 'var(--text-secondary)', border: '1px solid rgba(26,86,160,0.15)' }}>
             {family.notes}
           </div>
         )}
@@ -365,17 +410,17 @@ export default function FamilyDetailPage() {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
-        <Tab label="Members" icon={<Users size={14} />} active={tab === 'members'} count={family.members?.length ?? 0} onClick={() => setTab('members')} />
-        <Tab label="Activities" icon={<Activity size={14} />} active={tab === 'activities'} count={family.activities?.length ?? 0} onClick={() => setTab('activities')} />
-        <Tab label="Prayer Requests" icon={<HandHeart size={14} />} active={tab === 'prayer'} count={family.prayerRequests?.filter(p => !p.isAnswered).length ?? 0} onClick={() => setTab('prayer')} />
-        <Tab label="Announcements" icon={<Megaphone size={14} />} active={tab === 'announcements'} count={family.announcements?.length ?? 0} onClick={() => setTab('announcements')} />
+        <Tab label="Members"       icon={<Users size={14} />}     active={tab === 'members'}       count={family.members?.length ?? 0}                                  onClick={() => setTab('members')} />
+        <Tab label="Activities"    icon={<Activity size={14} />}  active={tab === 'activities'}    count={family.activities?.length ?? 0}                               onClick={() => setTab('activities')} />
+        <Tab label="Prayer Requests" icon={<HandHeart size={14} />} active={tab === 'prayer'}      count={family.prayerRequests?.filter(p => !p.isAnswered).length ?? 0} onClick={() => setTab('prayer')} />
+        <Tab label="Announcements" icon={<Megaphone size={14} />} active={tab === 'announcements'} count={family.announcements?.length ?? 0}                            onClick={() => setTab('announcements')} />
       </div>
 
-      {/* MEMBERS */}
+      {/* ── MEMBERS ── */}
       {tab === 'members' && (
         <div className="slide-up space-y-3">
           <div className="flex justify-end">
-            <button onClick={() => setShowAddMember(true)} className="btn-gold flex items-center gap-2 text-sm">
+            <button onClick={() => setShowAddMember(true)} className="btn-navy">
               <Plus size={14} /> Add Member
             </button>
           </div>
@@ -385,11 +430,12 @@ export default function FamilyDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {family.members?.map((m) => (
                 <div key={m._id} className="flex items-center gap-3 p-3 rounded-xl"
-                  style={{ background: 'var(--bg-card)', border: '1px solid var(--bg-border)' }}>
+                  style={{ background: 'var(--bg-card)', border: '1px solid rgba(26,86,160,0.15)' }}>
                   <Avatar name={`${m.firstName} ${m.lastName}`} photoUrl={m.photoUrl} size="sm" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm truncate" style={{ color: 'var(--text-primary)' }}>{m.firstName} {m.lastName}</p>
-                    <p className="text-xs font-mono" style={{ color: '#DAA520' }}>{m.membershipId}</p>
+                    {/* Membership ID: navy */}
+                    <p className="text-xs font-mono member-id">{m.membershipId}</p>
                   </div>
                   <StatusBadge status={m.status} size="sm" />
                   <button onClick={() => removeMember.mutate(m._id)}
@@ -403,11 +449,11 @@ export default function FamilyDetailPage() {
         </div>
       )}
 
-      {/* ACTIVITIES */}
+      {/* ── ACTIVITIES ── */}
       {tab === 'activities' && (
         <div className="slide-up space-y-3">
           <div className="flex justify-end">
-            <button onClick={() => setShowActivityForm(true)} className="btn-gold flex items-center gap-2 text-sm">
+            <button onClick={() => setShowActivityForm(true)} className="btn-navy">
               <Plus size={14} /> Log Activity
             </button>
           </div>
@@ -418,7 +464,8 @@ export default function FamilyDetailPage() {
               {[...family.activities].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).map((act) => {
                 const typeInfo = ACTIVITY_TYPES[act.type] || ACTIVITY_TYPES.other;
                 return (
-                  <div key={act._id} className="p-4 rounded-xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--bg-border)' }}>
+                  <div key={act._id} className="p-4 rounded-xl"
+                    style={{ background: 'var(--bg-card)', border: `1px solid ${typeInfo.color}20` }}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -449,11 +496,11 @@ export default function FamilyDetailPage() {
         </div>
       )}
 
-      {/* PRAYER REQUESTS */}
+      {/* ── PRAYER REQUESTS ── */}
       {tab === 'prayer' && (
         <div className="slide-up space-y-3">
           <div className="flex justify-end">
-            <button onClick={() => setShowPrayerForm(true)} className="btn-gold flex items-center gap-2 text-sm">
+            <button onClick={() => setShowPrayerForm(true)} className="btn-navy">
               <Plus size={14} /> Add Prayer Request
             </button>
           </div>
@@ -463,9 +510,13 @@ export default function FamilyDetailPage() {
             <div className="space-y-2">
               {family.prayerRequests.map((pr) => (
                 <div key={pr._id} className="prayer-card p-4 rounded-xl flex items-start gap-3"
-                  style={{ background: pr.isAnswered ? 'rgba(34,197,94,0.04)' : 'var(--bg-card)', border: pr.isAnswered ? '1px solid rgba(34,197,94,0.15)' : '1px solid var(--bg-border)' }}>
+                  style={{
+                    background: pr.isAnswered ? 'rgba(34,197,94,0.04)' : 'var(--bg-card)',
+                    border: pr.isAnswered ? '1px solid rgba(34,197,94,0.15)' : '1px solid rgba(26,86,160,0.15)',
+                  }}>
                   <button onClick={() => markPrayerAnswered.mutate({ reqId: pr._id, isAnswered: !pr.isAnswered })}
-                    className="mt-0.5 flex-shrink-0 transition-colors" style={{ color: pr.isAnswered ? '#22c55e' : 'var(--text-muted)' }}>
+                    className="mt-0.5 flex-shrink-0 transition-colors"
+                    style={{ color: pr.isAnswered ? '#22c55e' : '#1A56A0' }}>
                     {pr.isAnswered ? <CheckCircle size={16} /> : <Circle size={16} />}
                   </button>
                   <div className="flex-1">
@@ -486,11 +537,11 @@ export default function FamilyDetailPage() {
         </div>
       )}
 
-      {/* ANNOUNCEMENTS */}
+      {/* ── ANNOUNCEMENTS ── */}
       {tab === 'announcements' && (
         <div className="slide-up space-y-3">
           <div className="flex justify-end">
-            <button onClick={() => setShowAnnouncementForm(true)} className="btn-gold flex items-center gap-2 text-sm">
+            <button onClick={() => setShowAnnouncementForm(true)} className="btn-navy">
               <Plus size={14} /> Post Announcement
             </button>
           </div>
@@ -502,11 +553,16 @@ export default function FamilyDetailPage() {
                 const expired = ann.expiresAt && new Date(ann.expiresAt) < new Date();
                 return (
                   <div key={ann._id} className="p-4 rounded-xl"
-                    style={{ background: expired ? 'rgba(255,255,255,0.02)' : 'var(--bg-card)', border: ann.isPinned ? '1px solid rgba(218,165,32,0.3)' : '1px solid var(--bg-border)', opacity: expired ? 0.6 : 1 }}>
+                    style={{
+                      background: expired ? 'rgba(255,255,255,0.02)' : 'var(--bg-card)',
+                      border: ann.isPinned ? '1px solid rgba(26,86,160,0.35)' : '1px solid rgba(26,86,160,0.12)',
+                      opacity: expired ? 0.6 : 1,
+                    }}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
-                          {ann.isPinned && <Pin size={12} style={{ color: '#DAA520' }} />}
+                          {/* Pin icon: navy (was gold) */}
+                          {ann.isPinned && <Pin size={12} style={{ color: '#1A56A0' }} />}
                           <h4 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>{ann.title}</h4>
                           {expired && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>Expired</span>}
                         </div>
@@ -566,7 +622,7 @@ export default function FamilyDetailPage() {
           </div>
           <div className="flex justify-end gap-3">
             <button onClick={() => setShowActivityForm(false)} className="btn-ghost">Cancel</button>
-            <button onClick={() => addActivity.mutate(activityForm)} disabled={!activityForm.title || !activityForm.date || addActivity.isPending} className="btn-gold">
+            <button onClick={() => addActivity.mutate(activityForm)} disabled={!activityForm.title || !activityForm.date || addActivity.isPending} className="btn-navy">
               {addActivity.isPending ? 'Saving...' : 'Log Activity'}
             </button>
           </div>
@@ -581,12 +637,12 @@ export default function FamilyDetailPage() {
             <textarea className="input resize-none h-24" value={prayerForm.request} onChange={e => setPrayerForm(p => ({ ...p, request: e.target.value }))} placeholder="Share the prayer request..." />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" checked={prayerForm.isPrivate} onChange={e => setPrayerForm(p => ({ ...p, isPrivate: e.target.checked }))} className="accent-yellow-500" />
+            <input type="checkbox" checked={prayerForm.isPrivate} onChange={e => setPrayerForm(p => ({ ...p, isPrivate: e.target.checked }))} className="navy-checkbox" />
             <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Private (only leaders can see)</span>
           </label>
           <div className="flex justify-end gap-3">
             <button onClick={() => setShowPrayerForm(false)} className="btn-ghost">Cancel</button>
-            <button onClick={() => addPrayer.mutate(prayerForm)} disabled={!prayerForm.request || addPrayer.isPending} className="btn-gold">
+            <button onClick={() => addPrayer.mutate(prayerForm)} disabled={!prayerForm.request || addPrayer.isPending} className="btn-navy">
               {addPrayer.isPending ? 'Saving...' : 'Add Request'}
             </button>
           </div>
@@ -610,20 +666,20 @@ export default function FamilyDetailPage() {
               <input type="date" className="input" value={announcementForm.expiresAt} onChange={e => setAnnouncementForm(p => ({ ...p, expiresAt: e.target.value }))} />
             </div>
             <label className="flex items-center gap-2 cursor-pointer mt-4">
-              <input type="checkbox" checked={announcementForm.isPinned} onChange={e => setAnnouncementForm(p => ({ ...p, isPinned: e.target.checked }))} className="accent-yellow-500" />
+              <input type="checkbox" checked={announcementForm.isPinned} onChange={e => setAnnouncementForm(p => ({ ...p, isPinned: e.target.checked }))} className="navy-checkbox" />
               <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Pin this announcement</span>
             </label>
           </div>
           <div className="flex justify-end gap-3">
             <button onClick={() => setShowAnnouncementForm(false)} className="btn-ghost">Cancel</button>
-            <button onClick={() => addAnnouncement.mutate(announcementForm)} disabled={!announcementForm.title || !announcementForm.body || addAnnouncement.isPending} className="btn-gold">
+            <button onClick={() => addAnnouncement.mutate(announcementForm)} disabled={!announcementForm.title || !announcementForm.body || addAnnouncement.isPending} className="btn-navy">
               {addAnnouncement.isPending ? 'Posting...' : 'Post Announcement'}
             </button>
           </div>
         </div>
       </Modal>
 
-      {/* ── Add Member Modal — searchable ── */}
+      {/* Add Member */}
       <Modal isOpen={showAddMember} onClose={() => setShowAddMember(false)} title="Add Member to Family" size="md">
         <div className="space-y-3">
           <p className="text-sm" style={{ color: 'var(--text-muted)' }}>

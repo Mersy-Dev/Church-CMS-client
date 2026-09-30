@@ -78,7 +78,7 @@ function MemberPicker({ label, icon, value, onChange, members, placeholder, requ
   return (
     <div className="form-field" ref={ref} style={{ position: 'relative' }}>
       <label className="label flex items-center gap-1.5">
-        {icon} {label} {required && <span style={{ color: '#DAA520' }}>*</span>}
+        {icon} {label} {required && <span style={{ color: '#C41E3A' }}>*</span>}
       </label>
 
       <div
@@ -88,15 +88,17 @@ function MemberPicker({ label, icon, value, onChange, members, placeholder, requ
       >
         {selected ? (
           <>
+            {/* Selected member avatar: navy (was gold) */}
             <div
               className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-              style={{ background: 'rgba(218,165,32,0.15)', color: '#DAA520' }}
+              style={{ background: 'rgba(26,86,160,0.15)', color: '#4A8FD4' }}
             >
               {selected.firstName.charAt(0)}
             </div>
             <span className="flex-1 text-sm" style={{ color: 'var(--text-primary)' }}>
               {selected.firstName} {selected.lastName}
-              <span className="ml-2 font-mono text-xs" style={{ color: '#DAA520' }}>
+              {/* Membership ID: navy */}
+              <span className="ml-2 font-mono text-xs" style={{ color: '#4A8FD4' }}>
                 {selected.membershipId}
               </span>
             </span>
@@ -119,20 +121,21 @@ function MemberPicker({ label, icon, value, onChange, members, placeholder, requ
             right: 0,
             marginTop: 4,
             background: 'var(--bg-surface, #111)',
-            border: '1px solid var(--bg-border, rgba(255,255,255,0.1))',
+            border: '1px solid rgba(26,86,160,0.3)',
             borderRadius: 12,
-            boxShadow: '0 16px 40px rgba(0,0,0,0.4)',
+            boxShadow: '0 16px 40px rgba(26,86,160,0.15)',
             maxHeight: 260,
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
           }}
         >
+          {/* Search bar: navy */}
           <div
             className="flex items-center gap-2 px-3 py-2.5"
-            style={{ borderBottom: '1px solid var(--bg-border, rgba(255,255,255,0.08))' }}
+            style={{ borderBottom: '1px solid rgba(26,86,160,0.15)' }}
           >
-            <Search size={13} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
+            <Search size={13} style={{ color: '#1A56A0', flexShrink: 0 }} />
             <input
               autoFocus
               type="text"
@@ -163,13 +166,15 @@ function MemberPicker({ label, icon, value, onChange, members, placeholder, requ
                   onClick={() => handleSelect(m)}
                   className="w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-white/5"
                   style={{
-                    background: m._id === value ? 'rgba(218,165,32,0.08)' : 'transparent',
-                    borderLeft: m._id === value ? '2px solid #DAA520' : '2px solid transparent',
+                    /* Selected row: navy highlight (was gold) */
+                    background: m._id === value ? 'rgba(26,86,160,0.1)' : 'transparent',
+                    borderLeft: m._id === value ? '2px solid #1A56A0' : '2px solid transparent',
                   }}
                 >
+                  {/* Member initial avatar: navy (was gold) */}
                   <div
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                    style={{ background: 'rgba(218,165,32,0.12)', color: '#DAA520' }}
+                    style={{ background: 'rgba(26,86,160,0.12)', color: '#4A8FD4' }}
                   >
                     {m.firstName.charAt(0)}
                   </div>
@@ -234,6 +239,29 @@ export default function CreateFamilyForm({ onSuccess, onCancel }: Props) {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+        .btn-navy {
+          background: #1A56A0;
+          color: #fff;
+          border: none;
+          padding: 8px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+        .btn-navy:hover:not(:disabled) {
+          background: #164882;
+          box-shadow: 0 4px 16px rgba(26,86,160,0.35);
+        }
+        .btn-navy:disabled { opacity: 0.6; cursor: not-allowed; }
+      `}</style>
+
       <div className="form-field">
         <label className="label">Family Name *</label>
         <input
@@ -245,9 +273,10 @@ export default function CreateFamilyForm({ onSuccess, onCancel }: Props) {
       </div>
 
       <div className="space-y-3">
+        {/* Crown: crimson (head = most important role) */}
         <MemberPicker
           label="Family Head"
-          icon={<Crown size={13} style={{ color: '#DAA520' }} />}
+          icon={<Crown size={13} style={{ color: '#C41E3A' }} />}
           value={headId}
           onChange={(id) => { setHeadId(id); if (id) setHeadError(''); }}
           members={members}
@@ -256,15 +285,17 @@ export default function CreateFamilyForm({ onSuccess, onCancel }: Props) {
           error={headError}
           excludeIds={[assistantHeadId, spouseId].filter(Boolean)}
         />
+        {/* Shield: navy (assistant = secondary authority) */}
         <MemberPicker
           label="Assistant Head"
-          icon={<Shield size={13} style={{ color: '#5c9ee0' }} />}
+          icon={<Shield size={13} style={{ color: '#1A56A0' }} />}
           value={assistantHeadId}
           onChange={setAssistantHeadId}
           members={members}
           placeholder="Search for assistant head (optional)"
           excludeIds={[headId, spouseId].filter(Boolean)}
         />
+        {/* Heart: keep red — universal meaning */}
         <MemberPicker
           label="Spouse"
           icon={<Heart size={13} style={{ color: '#e05c5c' }} />}
@@ -310,7 +341,8 @@ export default function CreateFamilyForm({ onSuccess, onCancel }: Props) {
 
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel} className="btn-ghost">Cancel</button>
-        <button type="submit" disabled={mutation.isPending} className="btn-gold">
+        {/* Create button: navy (was gold) */}
+        <button type="submit" disabled={mutation.isPending} className="btn-navy">
           {mutation.isPending ? 'Creating...' : 'Create Family'}
         </button>
       </div>

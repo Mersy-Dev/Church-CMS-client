@@ -26,18 +26,41 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md' }:
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    /*
+     * Overlay uses inline style — NOT className="modal-overlay".
+     * theme.css [class*="modal"] forces bg-white in light mode, which
+     * would paint the backdrop white. Inline style can't be overridden by it.
+     */
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in"
+      style={{ backgroundColor: 'rgba(0,0,0,0.65)' }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
       <div className={`modal-content ${SIZES[size]}`}>
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-bg-border">
-          <h2 className="font-display font-bold text-text-primary text-lg">{title}</h2>
-          <button onClick={onClose} className="w-7 h-7 rounded-lg bg-bg-hover flex items-center justify-center hover:bg-bg-border transition-colors">
-            <X size={14} className="text-text-secondary" />
+
+        {/* Header — sits on bg-hover so it's visually distinct from the body */}
+        <div
+          className="flex items-center justify-between px-6 py-4 border-b border-bg-border rounded-t-2xl"
+          style={{ background: 'var(--bg-hover)' }}
+        >
+          <h2
+            className="text-base tracking-tight"
+            style={{ fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}
+          >
+            {title}
+          </h2>
+          <button
+            onClick={onClose}
+            className="w-7 h-7 rounded-lg bg-bg-border flex items-center justify-center hover:bg-bg-border/80 transition-colors"
+          >
+            <X size={13} className="text-text-secondary" />
           </button>
         </div>
+
         {/* Body */}
         <div className="px-6 py-5">{children}</div>
+
       </div>
     </div>
   );
-}
+} 

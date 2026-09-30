@@ -39,176 +39,234 @@ export default function AddMemberForm({ departments, onSuccess, onCancel }: Prop
   return (
     <form onSubmit={handleSubmit((d) => mutation.mutate(d))} className="space-y-4">
       <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+
         @keyframes inputFocus {
-          from { box-shadow: 0 0 0 0 rgba(218, 165, 32, 0.1); }
-          to { box-shadow: 0 0 0 4px rgba(218, 165, 32, 0.1); }
+          from { box-shadow: 0 0 0 0 rgba(26,86,160,0.1); }
+          to   { box-shadow: 0 0 0 4px rgba(26,86,160,0.15); }
+        }
+        .add-form input:focus,
+        .add-form select:focus {
+          animation: inputFocus 0.3s ease-out;
+          border-color: rgba(26,86,160,0.5) !important;
+          outline: none;
         }
         .form-field { transition: all 0.2s ease; }
         .form-field:focus-within { transform: translateY(-1px); }
         .dept-dropdown { animation: fadeIn 0.15s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Department tag: navy */
+        .navy-dept-tag {
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 2px 8px; border-radius: 999px;
+          font-size: 11px; font-weight: 600;
+          background: rgba(26,86,160,0.14);
+          color: #4A8FD4;
+          border: 1px solid rgba(26,86,160,0.3);
+        }
+        .navy-dept-tag button:hover { opacity: 0.7; }
+
+        /* Checkbox: navy */
+        .dept-checkbox { accent-color: #1A56A0; }
+
+        /* Add Member button: navy */
+        .btn-navy {
+          background: #1A56A0;
+          color: #fff;
+          border: none;
+          padding: 8px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+        .btn-navy:hover:not(:disabled) {
+          background: #164882;
+          box-shadow: 0 4px 16px rgba(26,86,160,0.35);
+        }
+        .btn-navy:disabled { opacity: 0.6; cursor: not-allowed; }
       `}</style>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="form-field">
-          <label className="label">First Name *</label>
-          <input className="input transition-all duration-200" {...register('firstName', { required: 'First name is required' })} placeholder="John" />
-          {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName.message}</p>}
+      <div className="add-form space-y-4">
+        {/* Names */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="form-field">
+            <label className="label">First Name *</label>
+            <input className="input transition-all duration-200" {...register('firstName', { required: 'First name is required' })} placeholder="John" />
+            {errors.firstName && <p className="text-red-400 text-xs mt-1">{errors.firstName.message}</p>}
+          </div>
+          <div className="form-field">
+            <label className="label">Last Name *</label>
+            <input className="input transition-all duration-200" {...register('lastName', { required: 'Last name is required' })} placeholder="Doe" />
+            {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName.message}</p>}
+          </div>
         </div>
-        <div className="form-field">
-          <label className="label">Last Name *</label>
-          <input className="input transition-all duration-200" {...register('lastName', { required: 'Last name is required' })} placeholder="Doe" />
-          {errors.lastName && <p className="text-red-400 text-xs mt-1">{errors.lastName.message}</p>}
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="form-field">
-          <label className="label">Email</label>
-          <input type="email" className="input transition-all duration-200" {...register('email')} placeholder="john@example.com" />
+        {/* Contact */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="form-field">
+            <label className="label">Email</label>
+            <input type="email" className="input transition-all duration-200" {...register('email')} placeholder="john@example.com" />
+          </div>
+          <div className="form-field">
+            <label className="label">Phone</label>
+            <input className="input transition-all duration-200" {...register('phone')} placeholder="08012345678" />
+          </div>
         </div>
-        <div className="form-field">
-          <label className="label">Phone</label>
-          <input className="input transition-all duration-200" {...register('phone')} placeholder="08012345678" />
-        </div>
-      </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="form-field">
-          <label className="label">Gender</label>
-          <select className="input transition-all duration-200" {...register('gender')}>
-            <option value="male">Male</option>
-            <option value="female">Female</option>
-            <option value="other">Other</option>
-          </select>
+        {/* Demographics */}
+        <div className="grid grid-cols-3 gap-4">
+          <div className="form-field">
+            <label className="label">Gender</label>
+            <select className="input transition-all duration-200" {...register('gender')}>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div className="form-field">
+            <label className="label">Status</label>
+            <select className="input transition-all duration-200" {...register('status')}>
+              {['member','worker','leader','new_convert','first_timer','visitor'].map((s) => (
+                <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <label className="label">Marital Status</label>
+            <select className="input transition-all duration-200" {...register('maritalStatus')}>
+              {['single','married','divorced','widowed'].map((s) => (
+                <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+              ))}
+            </select>
+          </div>
         </div>
-        <div className="form-field">
-          <label className="label">Status</label>
-          <select className="input transition-all duration-200" {...register('status')}>
-            {['member','worker','leader','new_convert','first_timer','visitor'].map((s) => (
-              <option key={s} value={s}>{s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}</option>
-            ))}
-          </select>
-        </div>
-        <div className="form-field">
-          <label className="label">Marital Status</label>
-          <select className="input transition-all duration-200" {...register('maritalStatus')}>
-            {['single','married','divorced','widowed'].map((s) => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="form-field">
-          <label className="label">Date of Birth</label>
-          <input type="date" className="input transition-all duration-200" {...register('dateOfBirth')} />
+        {/* Dates */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="form-field">
+            <label className="label">Date of Birth</label>
+            <input type="date" className="input transition-all duration-200" {...register('dateOfBirth')} />
+          </div>
+          <div className="form-field">
+            <label className="label">Date Joined</label>
+            <input type="date" className="input transition-all duration-200" {...register('dateJoined')} />
+          </div>
         </div>
-        <div className="form-field">
-          <label className="label">Date Joined</label>
-          <input type="date" className="input transition-all duration-200" {...register('dateJoined')} />
-        </div>
-      </div>
 
-      {/* ── Multi-Department Picker ── */}
-      <div className="form-field relative">
-        <label className="label">Departments</label>
-        <button
-          type="button"
-          onClick={() => setDeptDropdownOpen((o) => !o)}
-          className="input transition-all duration-200 w-full text-left flex items-center justify-between"
-        >
-          <span className={selectedDeptIds.length === 0 ? 'text-gray-400' : ''}>
-            {selectedDeptIds.length === 0
-              ? 'Select departments...'
-              : `${selectedDeptIds.length} selected`}
-          </span>
-          <svg
-            className={`w-4 h-4 transition-transform duration-200 ${deptDropdownOpen ? 'rotate-180' : ''}`}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+        {/* ── Multi-Department Picker ── */}
+        <div className="form-field relative">
+          <label className="label">Departments</label>
+          <button
+            type="button"
+            onClick={() => setDeptDropdownOpen((o) => !o)}
+            className="input transition-all duration-200 w-full text-left flex items-center justify-between"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
+            <span className={selectedDeptIds.length === 0 ? 'text-gray-400' : ''}>
+              {selectedDeptIds.length === 0
+                ? 'Select departments...'
+                : `${selectedDeptIds.length} selected`}
+            </span>
+            <svg
+              className={`w-4 h-4 transition-transform duration-200 ${deptDropdownOpen ? 'rotate-180' : ''}`}
+              fill="none" stroke="currentColor" viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
 
-        {/* Selected tags */}
-        {selectedDeptNames.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {selectedDeptNames.map((name, i) => (
-              <span
-                key={i}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
-                style={{ background: 'rgba(218,165,32,0.15)', color: '#DAA520', border: '1px solid rgba(218,165,32,0.3)' }}
+          {/* Selected tags: navy */}
+          {selectedDeptNames.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {selectedDeptNames.map((name, i) => (
+                <span key={i} className="navy-dept-tag">
+                  {name}
+                  <button
+                    type="button"
+                    onClick={() => toggleDept(departments.find((d) => d.name === name)?._id || '')}
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Dropdown */}
+          {deptDropdownOpen && (
+            <div
+              className="dept-dropdown absolute z-50 w-full mt-1 rounded-lg border overflow-hidden shadow-xl"
+              style={{
+                background: 'var(--bg-card, #1a1a2e)',
+                borderColor: 'rgba(26,86,160,0.3)',
+              }}
+            >
+              {departments?.length === 0 && (
+                <p className="px-3 py-2 text-xs text-gray-400">No departments available</p>
+              )}
+              {departments?.map((d) => {
+                const checked = selectedDeptIds.includes(d._id);
+                return (
+                  <label
+                    key={d._id}
+                    className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/5 transition-colors duration-150"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleDept(d._id)}
+                      className="dept-checkbox w-4 h-4 rounded"
+                    />
+                    <span className="text-sm">{d.name}</span>
+                    {checked && (
+                      <span className="ml-auto text-xs" style={{ color: '#4A8FD4' }}>✓</span>
+                    )}
+                  </label>
+                );
+              })}
+              <div
+                className="px-3 py-2 border-t"
+                style={{ borderColor: 'rgba(26,86,160,0.2)' }}
               >
-                {name}
                 <button
                   type="button"
-                  onClick={() => toggleDept(departments.find((d) => d.name === name)?._id || '')}
-                  className="hover:opacity-70 transition-opacity"
+                  onClick={() => setDeptDropdownOpen(false)}
+                  className="text-xs transition-colors"
+                  style={{ color: '#4A8FD4' }}
+                  onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
+                  onMouseLeave={e => (e.currentTarget.style.color = '#4A8FD4')}
                 >
-                  ×
+                  Done
                 </button>
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* Dropdown */}
-        {deptDropdownOpen && (
-          <div
-            className="dept-dropdown absolute z-50 w-full mt-1 rounded-lg border overflow-hidden shadow-xl"
-            style={{ background: 'var(--bg-card, #1a1a2e)', borderColor: 'var(--border, rgba(255,255,255,0.1))' }}
-          >
-            {departments?.length === 0 && (
-              <p className="px-3 py-2 text-xs text-gray-400">No departments available</p>
-            )}
-            {departments?.map((d) => {
-              const checked = selectedDeptIds.includes(d._id);
-              return (
-                <label
-                  key={d._id}
-                  className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-white/5 transition-colors duration-150"
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleDept(d._id)}
-                    className="w-4 h-4 rounded accent-yellow-500"
-                  />
-                  <span className="text-sm">{d.name}</span>
-                  {checked && (
-                    <span className="ml-auto text-xs" style={{ color: '#DAA520' }}>✓</span>
-                  )}
-                </label>
-              );
-            })}
-            <div className="px-3 py-2 border-t" style={{ borderColor: 'var(--border, rgba(255,255,255,0.1))' }}>
-              <button
-                type="button"
-                onClick={() => setDeptDropdownOpen(false)}
-                className="text-xs text-gray-400 hover:text-white transition-colors"
-              >
-                Done
-              </button>
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Extra fields */}
+        <div className="form-field">
+          <label className="label">Occupation</label>
+          <input className="input transition-all duration-200" {...register('occupation')} placeholder="Software Engineer" />
+        </div>
+
+        <div className="form-field">
+          <label className="label">Address</label>
+          <input className="input transition-all duration-200" {...register('address')} placeholder="123 Church Street, Lagos" />
+        </div>
       </div>
 
-      <div className="form-field">
-        <label className="label">Occupation</label>
-        <input className="input transition-all duration-200" {...register('occupation')} placeholder="Software Engineer" />
-      </div>
-
-      <div className="form-field">
-        <label className="label">Address</label>
-        <input className="input transition-all duration-200" {...register('address')} placeholder="123 Church Street, Lagos" />
-      </div>
-
+      {/* Actions */}
       <div className="flex justify-end gap-3 pt-2">
         <button type="button" onClick={onCancel} className="btn-ghost">Cancel</button>
-        <button type="submit" disabled={mutation.isPending} className="btn-gold">
+        <button type="submit" disabled={mutation.isPending} className="btn-navy">
           {mutation.isPending ? 'Saving...' : 'Add Member'}
         </button>
       </div>

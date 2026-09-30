@@ -1,12 +1,13 @@
 /**
  * ChurchOS — src/features/training/CohortsTab.tsx
- * Lists all cohorts; clicking opens CohortDetailPage
+ * Word House Brand: Navy #1A56A0 (dominant) + Crimson #C41E3A (accent)
+ * TEXT RULE: All body text uses CSS vars — never hardcoded dark hex.
  */
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Users, Calendar, MapPin, Eye, ChevronDown } from 'lucide-react';
+import { Plus, Users, Calendar, MapPin, Eye } from 'lucide-react';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import api from '../../lib/api';
@@ -16,12 +17,18 @@ import EmptyState from '../../components/ui/EmptyState';
 import Avatar from '../../components/ui/Avatar';
 import type { TrainingCohort, CohortStatus, TrainingProgram } from '../../types/training.types';
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Word House Brand Colors ───────────────────────────────────────────────────
+const NAVY       = '#1A56A0';
+const NAVY_LIGHT = '#4A8FD4';
+const CRIMSON    = '#C41E3A';
+const GREEN      = '#2E8B57';
+
+// Status → brand-anchored palette (was arbitrary bright colors)
 const STATUS_META: Record<CohortStatus, { label: string; color: string }> = {
-  upcoming:  { label: 'Upcoming',  color: '#5c9ee0' },
-  active:    { label: 'Active',    color: '#5ce08a' },
-  completed: { label: 'Completed', color: '#DAA520' },
-  cancelled: { label: 'Cancelled', color: '#e05c5c' },
+  upcoming:  { label: 'Upcoming',  color: NAVY_LIGHT }, // was #5c9ee0
+  active:    { label: 'Active',    color: GREEN      }, // was #5ce08a
+  completed: { label: 'Completed', color: NAVY       }, // was gold #DAA520
+  cancelled: { label: 'Cancelled', color: CRIMSON    }, // was #e05c5c
 };
 
 const DAYS = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
@@ -45,28 +52,41 @@ function CohortCard({ cohort }: { cohort: TrainingCohort }) {
       className="rounded-2xl overflow-hidden cursor-pointer"
       style={{
         background: 'var(--bg-card, rgba(255,255,255,0.04))',
-        border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        border: '1px solid rgba(26,86,160,0.18)',
+        transition: 'transform 0.2s, box-shadow 0.2s, border-color 0.2s',
       }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)'; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = ''; (e.currentTarget as HTMLElement).style.boxShadow = ''; }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 8px 24px rgba(26,86,160,0.18)';
+        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(26,86,160,0.4)';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.transform = '';
+        (e.currentTarget as HTMLElement).style.boxShadow = '';
+        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(26,86,160,0.18)';
+      }}
       onClick={() => navigate(`/training/cohorts/${cohort._id}`)}
     >
+      {/* Status color bar */}
       <div className="h-1.5 w-full" style={{ background: meta.color }} />
+
       <div className="p-5 space-y-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: `${meta.color}18`, color: meta.color, border: `1px solid ${meta.color}28` }}>
+              <span
+                className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={{ background: `${meta.color}18`, color: meta.color, border: `1px solid ${meta.color}30` }}
+              >
                 {meta.label}
               </span>
             </div>
-            <h3 className="font-display font-bold text-base leading-tight" style={{ color: 'var(--text-primary)' }}>
+            {/* Cohort name: CSS var */}
+            <h3 className="font-display font-bold text-base leading-tight text-text-primary">
               {cohort.name}
             </h3>
             {program?.name && (
-              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{program.name}</p>
+              <p className="text-xs mt-0.5 text-text-muted">{program.name}</p>
             )}
           </div>
         </div>
@@ -79,25 +99,26 @@ function CohortCard({ cohort }: { cohort: TrainingCohort }) {
               photoUrl={cohort.facilitatorId.photoUrl}
               size="xs"
             />
-            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            <span className="text-xs text-text-secondary">
               {cohort.facilitatorId.firstName} {cohort.facilitatorId.lastName}
             </span>
-            <span className="text-xs ml-auto" style={{ color: 'var(--text-muted)' }}>Facilitator</span>
+            <span className="text-xs ml-auto text-text-muted">Facilitator</span>
           </div>
         )}
 
         {/* Dates / Venue */}
         <div className="space-y-1">
-          <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            <Calendar size={11} /> {fmt(cohort.startDate)}{cohort.endDate ? ` → ${fmt(cohort.endDate)}` : ''}
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
+            <Calendar size={11} style={{ color: NAVY }} />
+            {fmt(cohort.startDate)}{cohort.endDate ? ` → ${fmt(cohort.endDate)}` : ''}
           </div>
           {cohort.venue && (
-            <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
-              <MapPin size={11} /> {cohort.venue}
+            <div className="flex items-center gap-1.5 text-xs text-text-muted">
+              <MapPin size={11} style={{ color: NAVY }} /> {cohort.venue}
             </div>
           )}
           {cohort.meetingDays?.length ? (
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <p className="text-xs text-text-muted">
               {cohort.meetingDays.join(', ')}{cohort.meetingTime ? ` · ${cohort.meetingTime}` : ''}
             </p>
           ) : null}
@@ -106,22 +127,22 @@ function CohortCard({ cohort }: { cohort: TrainingCohort }) {
         {/* Enrollment bar */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span className="text-xs text-text-muted">
               {enrolled} enrolled{cohort.graduatedCount ? ` · ${cohort.graduatedCount} graduated` : ''}
             </span>
-            {total && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>/ {total} max</span>}
+            {total && <span className="text-xs text-text-muted">/ {total} max</span>}
           </div>
           {pct !== null && (
             <div className="h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.08)' }}>
               <div
                 className="h-1.5 rounded-full transition-all"
-                style={{ width: `${pct}%`, background: pct >= 90 ? '#e05c5c' : meta.color }}
+                style={{ width: `${pct}%`, background: pct >= 90 ? CRIMSON : meta.color }}
               />
             </div>
           )}
         </div>
 
-        <div className="flex items-center justify-between pt-1" style={{ borderTop: '1px solid var(--bg-border)' }}>
+        <div className="flex items-center justify-between pt-1" style={{ borderTop: '1px solid rgba(26,86,160,0.12)' }}>
           <button
             onClick={() => navigate(`/training/cohorts/${cohort._id}`)}
             className="flex items-center gap-1.5 text-xs font-medium hover:opacity-70 transition-opacity"
@@ -129,7 +150,7 @@ function CohortCard({ cohort }: { cohort: TrainingCohort }) {
           >
             <Eye size={13} /> View Details
           </button>
-          <div className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex items-center gap-1.5 text-xs text-text-muted">
             <Users size={11} /> {enrolled}
           </div>
         </div>
@@ -139,7 +160,9 @@ function CohortCard({ cohort }: { cohort: TrainingCohort }) {
 }
 
 // ── Create Cohort Modal ───────────────────────────────────────────────────────
-function CreateCohortModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
+function CreateCohortModal({ isOpen, onClose, onSuccess }: {
+  isOpen: boolean; onClose: () => void; onSuccess: () => void;
+}) {
   const [form, setForm] = useState({
     programId: '', name: '', startDate: '', endDate: '',
     venue: '', meetingDays: [] as string[], meetingTime: '',
@@ -165,7 +188,9 @@ function CreateCohortModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; on
   });
 
   const toggleDay = (d: string) => {
-    set('meetingDays', form.meetingDays.includes(d) ? form.meetingDays.filter((x) => x !== d) : [...form.meetingDays, d]);
+    set('meetingDays', form.meetingDays.includes(d)
+      ? form.meetingDays.filter((x) => x !== d)
+      : [...form.meetingDays, d]);
   };
 
   const submit = () => {
@@ -193,7 +218,11 @@ function CreateCohortModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; on
         </div>
         <div className="form-field">
           <label className="label">Cohort Name *</label>
-          <input className="input" value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Integration Class – May 2025" />
+          <input
+            className="input" value={form.name}
+            onChange={(e) => set('name', e.target.value)}
+            placeholder="e.g. Integration Class – May 2025"
+          />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="form-field">
@@ -215,37 +244,56 @@ function CreateCohortModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; on
             <input className="input" value={form.meetingTime} onChange={(e) => set('meetingTime', e.target.value)} placeholder="9:00 AM" />
           </div>
         </div>
+
+        {/* Meeting Days: navy active (was gold) */}
         <div className="form-field">
           <label className="label">Meeting Days</label>
           <div className="flex flex-wrap gap-2 mt-1">
             {DAYS.map((d) => (
               <button
-                key={d}
-                type="button"
-                onClick={() => toggleDay(d)}
+                key={d} type="button" onClick={() => toggleDay(d)}
                 className="text-xs px-2.5 py-1 rounded-lg font-medium transition-all"
                 style={form.meetingDays.includes(d)
-                  ? { background: 'rgba(218,165,32,0.15)', color: '#DAA520', border: '1px solid rgba(218,165,32,0.3)' }
-                  : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid var(--bg-border)' }}
+                  ? { background: 'rgba(26,86,160,0.15)', color: NAVY_LIGHT, border: '1px solid rgba(26,86,160,0.35)' }
+                  : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid var(--bg-border)' }
+                }
               >
                 {d.slice(0, 3)}
               </button>
             ))}
           </div>
         </div>
+
         <div className="form-field">
           <label className="label">Max Enrollment</label>
-          <input type="number" min={1} className="input" value={form.maxEnrollment} onChange={(e) => set('maxEnrollment', e.target.value)} placeholder="Leave blank for unlimited" />
+          <input
+            type="number" min={1} className="input"
+            value={form.maxEnrollment}
+            onChange={(e) => set('maxEnrollment', e.target.value)}
+            placeholder="Leave blank for unlimited"
+          />
         </div>
         <div className="form-field">
           <label className="label">Notes</label>
-          <textarea className="input resize-none h-16" value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Any notes about this cohort..." />
+          <textarea
+            className="input resize-none h-16"
+            value={form.notes}
+            onChange={(e) => set('notes', e.target.value)}
+            placeholder="Any notes about this cohort..."
+          />
         </div>
       </div>
 
       <div className="flex justify-end gap-3 pt-4 mt-2" style={{ borderTop: '1px solid var(--bg-border)' }}>
         <button onClick={onClose} className="btn-ghost">Cancel</button>
-        <button onClick={submit} disabled={mutation.isPending} className="btn-gold">
+        {/* Create Cohort: navy (was gold) */}
+        <button
+          onClick={submit} disabled={mutation.isPending}
+          className="px-4 py-2 rounded-lg font-semibold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          style={{ background: NAVY }}
+          onMouseEnter={(e) => { if (!mutation.isPending) (e.currentTarget as HTMLElement).style.background = '#164882'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = NAVY; }}
+        >
           {mutation.isPending ? 'Creating...' : 'Create Cohort'}
         </button>
       </div>
@@ -279,24 +327,36 @@ export default function CohortsTab() {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* Filter pills: navy active (was gold fallback) */}
         <div className="flex flex-wrap gap-2">
           {(['all', 'upcoming', 'active', 'completed', 'cancelled'] as const).map((s) => {
             const meta = s !== 'all' ? STATUS_META[s] : null;
+            const isActive = statusFilter === s;
+            const activeColor = meta?.color ?? NAVY;
             return (
               <button
                 key={s}
                 onClick={() => setStatusFilter(s)}
                 className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all capitalize"
-                style={statusFilter === s
-                  ? { background: meta ? `${meta.color}18` : 'rgba(218,165,32,0.12)', color: meta?.color ?? '#DAA520', border: `1px solid ${meta?.color ?? '#DAA520'}30` }
-                  : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid var(--bg-border)' }}
+                style={isActive
+                  ? { background: `${activeColor}18`, color: activeColor, border: `1px solid ${activeColor}35` }
+                  : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid var(--bg-border)' }
+                }
               >
                 {s === 'all' ? 'All' : STATUS_META[s].label}
               </button>
             );
           })}
         </div>
-        <button onClick={() => setShowCreate(true)} className="btn-gold flex items-center gap-2 text-sm">
+
+        {/* New Cohort: navy (was gold) */}
+        <button
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg font-semibold text-white transition-all"
+          style={{ background: NAVY }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#164882'; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = NAVY; }}
+        >
           <Plus size={14} /> New Cohort
         </button>
       </div>
@@ -308,7 +368,17 @@ export default function CohortsTab() {
           icon="🎓"
           title="No cohorts found"
           description="Create a cohort to start enrolling members"
-          action={<button onClick={() => setShowCreate(true)} className="btn-gold">Create Cohort</button>}
+          action={
+            <button
+              onClick={() => setShowCreate(true)}
+              className="px-4 py-2 rounded-lg font-semibold text-white transition-all"
+              style={{ background: NAVY }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = '#164882'; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = NAVY; }}
+            >
+              Create Cohort
+            </button>
+          }
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

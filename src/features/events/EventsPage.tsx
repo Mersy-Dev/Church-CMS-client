@@ -10,17 +10,18 @@ import { PageLoader } from '../../components/ui/Spinner';
 import type { ChurchEvent } from '../../types';
 import AddEventForm from './AddEventForm';
 
+// ── Event colors: navy/crimson anchored palette ───────────────────────────────
 const EVENT_COLORS: Record<string, string> = {
-  sunday_service:    'bg-blue-600/80',
-  midweek_service:   'bg-purple-600/80',
-  conference:        'bg-orange-500/80',
-  crusade:           'bg-red-600/80',
-  vigil:             'bg-indigo-600/80',
-  retreat:           'bg-teal-600/80',
-  cell_group:        'bg-green-600/80',
-  department_meeting:'bg-yellow-600/80',
-  outreach:          'bg-pink-600/80',
-  other:             'bg-gray-600/80',
+  sunday_service:     'bg-blue-700/80',      // navy tone
+  midweek_service:    'bg-blue-600/80',      // lighter navy
+  conference:         'bg-orange-500/80',
+  crusade:            'bg-red-700/80',       // crimson tone
+  vigil:              'bg-indigo-700/80',
+  retreat:            'bg-teal-600/80',
+  cell_group:         'bg-green-600/80',
+  department_meeting: 'bg-sky-600/80',
+  outreach:           'bg-pink-600/80',
+  other:              'bg-gray-600/80',
 };
 
 export default function EventsPage() {
@@ -41,11 +42,10 @@ export default function EventsPage() {
     },
   });
 
-  // Build calendar grid
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(currentDate);
   const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
-  const startPadding = getDay(monthStart); // 0=Sun
+  const startPadding = getDay(monthStart);
   const WEEKDAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
   const eventsOnDay = (day: Date) =>
@@ -56,30 +56,79 @@ export default function EventsPage() {
 
   return (
     <div className="space-y-5">
+      <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+
+        /* New Event button: navy */
+        .btn-navy {
+          background: #1A56A0;
+          color: #fff;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          display: inline-flex; align-items: center; gap: 6px;
+          transition: background 0.2s, box-shadow 0.2s;
+        }
+        .btn-navy:hover { background: #164882; box-shadow: 0 4px 16px rgba(26,86,160,0.35); }
+
+        /* Active tab underline: navy (was gold) */
+        .tab-active {
+          border-bottom: 2px solid #1A56A0 !important;
+          color: #4A8FD4 !important;
+        }
+        .tab-inactive {
+          border-bottom: 2px solid transparent;
+          color: var(--text-muted);
+        }
+        .tab-inactive:hover { color: var(--text-primary); }
+
+        /* Calendar nav hover: navy (was gold) */
+        .cal-nav:hover { color: #4A8FD4 !important; }
+
+        /* Today dot: navy (was gold bg) */
+        .today-dot {
+          background: #1A56A0 !important;
+          color: #fff !important;
+          font-weight: 700;
+        }
+
+        /* List view "View" link: navy (was gold) */
+        .view-link { color: #4A8FD4; }
+        .view-link:hover { color: #1A56A0; }
+      `}</style>
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-3xl text-text-primary">Events & Calendar</h1>
           <p className="text-text-muted text-sm mt-0.5">Schedule and manage all church activities</p>
         </div>
-        <button onClick={() => setShowAdd(true)} className="btn-gold">
+        <button onClick={() => setShowAdd(true)} className="btn-navy">
           <Plus size={15} /> New Event
         </button>
       </div>
 
-      {/* View toggle */}
+      {/* View toggle: navy active state */}
       <div className="flex items-center gap-1 border-b border-bg-border pb-0">
         <button
           onClick={() => setView('calendar')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px
-            ${view === 'calendar' ? 'border-gold text-gold' : 'border-transparent text-text-muted hover:text-text-primary'}`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors -mb-px ${
+            view === 'calendar' ? 'tab-active' : 'tab-inactive'
+          }`}
         >
           <CalIcon size={14} /> Calendar
         </button>
         <button
           onClick={() => setView('list')}
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px
-            ${view === 'list' ? 'border-gold text-gold' : 'border-transparent text-text-muted hover:text-text-primary'}`}
+          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors -mb-px ${
+            view === 'list' ? 'tab-active' : 'tab-inactive'
+          }`}
         >
           <List size={14} /> List View
         </button>
@@ -89,13 +138,13 @@ export default function EventsPage() {
         <div className="card overflow-hidden">
           {/* Calendar nav */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-bg-border">
-            <button onClick={prevMonth} className="flex items-center gap-1 text-text-secondary hover:text-gold transition-colors text-sm">
+            <button onClick={prevMonth} className="cal-nav flex items-center gap-1 text-text-secondary transition-colors text-sm">
               <ChevronLeft size={16} /> Prev
             </button>
             <h2 className="font-display font-bold text-text-primary text-lg">
               {format(currentDate, 'MMMM yyyy')}
             </h2>
-            <button onClick={nextMonth} className="flex items-center gap-1 text-text-secondary hover:text-gold transition-colors text-sm">
+            <button onClick={nextMonth} className="cal-nav flex items-center gap-1 text-text-secondary transition-colors text-sm">
               Next <ChevronRight size={16} />
             </button>
           </div>
@@ -111,12 +160,10 @@ export default function EventsPage() {
 
           {/* Calendar cells */}
           <div className="grid grid-cols-7">
-            {/* Padding cells */}
             {Array.from({ length: startPadding }).map((_, i) => (
               <div key={`pad-${i}`} className="border-b border-r border-bg-border/50 min-h-[80px] bg-bg-base/30" />
             ))}
 
-            {/* Day cells */}
             {days.map((day) => {
               const dayEvents = eventsOnDay(day);
               const isToday = isSameDay(day, new Date());
@@ -126,8 +173,9 @@ export default function EventsPage() {
                   className={`border-b border-r border-bg-border/50 min-h-[80px] p-2 transition-colors hover:bg-bg-hover/30
                     ${isSameMonth(day, currentDate) ? '' : 'opacity-40'}`}
                 >
+                  {/* Today: navy circle (was gold) */}
                   <span className={`text-sm font-medium inline-flex w-6 h-6 items-center justify-center rounded-full
-                    ${isToday ? 'bg-gold text-bg-base font-bold' : 'text-text-secondary'}`}>
+                    ${isToday ? 'today-dot' : 'text-text-secondary'}`}>
                     {format(day, 'd')}
                   </span>
                   <div className="mt-1 space-y-0.5">
@@ -178,9 +226,10 @@ export default function EventsPage() {
                   <td className="table-cell text-text-muted text-sm">{event.location || '—'}</td>
                   <td className="table-cell"><StatusBadge status={event.status} size="sm" /></td>
                   <td className="table-cell">
+                    {/* View link: navy (was gold) */}
                     <button
                       onClick={() => setSelectedEvent(event)}
-                      className="text-xs text-gold hover:text-gold-light transition-colors"
+                      className="view-link text-xs transition-colors"
                     >
                       View
                     </button>

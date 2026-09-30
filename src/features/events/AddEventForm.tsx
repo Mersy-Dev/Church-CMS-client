@@ -72,6 +72,32 @@ export default function AddEventForm({ onSuccess, onCancel }: Props) {
       onSubmit={handleSubmit((d) => mutation.mutate(d))}
       className="space-y-4"
     >
+      <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+        .btn-navy {
+          background: #1A56A0;
+          color: #fff;
+          border: none;
+          padding: 8px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          transition: background 0.2s, box-shadow 0.2s, opacity 0.2s;
+        }
+        .btn-navy:hover:not(:disabled) {
+          background: #164882;
+          box-shadow: 0 4px 16px rgba(26,86,160,0.35);
+        }
+        .btn-navy:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Checkbox: navy (was accent-gold) */
+        .navy-checkbox { accent-color: #1A56A0; }
+      `}</style>
+
       <div>
         <label className="label">Event Title *</label>
         <input
@@ -154,11 +180,12 @@ export default function AddEventForm({ onSuccess, onCancel }: Props) {
           />
         </div>
         <div className="flex items-center gap-4 pt-5">
+          {/* Checkboxes: navy (was accent-gold) */}
           <label className="flex items-center gap-2 cursor-pointer">
             <input
               type="checkbox"
               {...register("isOnline")}
-              className="w-4 h-4 accent-gold"
+              className="navy-checkbox w-4 h-4"
             />
             <span className="text-text-secondary text-sm">Online Event</span>
           </label>
@@ -166,7 +193,7 @@ export default function AddEventForm({ onSuccess, onCancel }: Props) {
             <input
               type="checkbox"
               {...register("rsvpEnabled")}
-              className="w-4 h-4 accent-gold"
+              className="navy-checkbox w-4 h-4"
             />
             <span className="text-text-secondary text-sm">Enable RSVP</span>
           </label>
@@ -177,11 +204,8 @@ export default function AddEventForm({ onSuccess, onCancel }: Props) {
         <button type="button" onClick={onCancel} className="btn-ghost">
           Cancel
         </button>
-        <button
-          type="submit"
-          disabled={mutation.isPending}
-          className="btn-gold"
-        >
+        {/* Create Event button: navy (was gold) */}
+        <button type="submit" disabled={mutation.isPending} className="btn-navy">
           {mutation.isPending ? "Creating..." : "Create Event"}
         </button>
       </div>

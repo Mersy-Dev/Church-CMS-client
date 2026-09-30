@@ -81,13 +81,19 @@ const authSlice = createSlice({
       state.error = action.payload as string;
     });
     // Fetch me
+    builder.addCase(fetchMe.pending, (state) => {
+      state.isLoading = true;
+      state.error = null;
+    });
     builder.addCase(fetchMe.fulfilled, (state, action) => {
       state.user = action.payload;
       state.isAuthenticated = true;
+      state.isLoading = false;
     });
     builder.addCase(fetchMe.rejected, (state) => {
       state.isAuthenticated = false;
       state.user = null;
+      state.isLoading = false;
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
     });

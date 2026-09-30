@@ -1,53 +1,129 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
+import { useParams, useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 import {
-  ArrowLeft, Mail, Phone, MapPin, Briefcase, Calendar,
-  User, Shield, Church, Star, BookOpen, GitBranch, QrCode
-} from 'lucide-react';
-import api from '../../lib/api';
-import Avatar from '../../components/ui/Avatar';
-import StatusBadge from '../../components/ui/StatusBadge';
-import { PageLoader } from '../../components/ui/Spinner';
-import type { Member, Department } from '../../types';
+  ArrowLeft, Mail, Phone, MapPin, Briefcase,
+  Calendar, User, Church, Star, BookOpen, GitBranch,
+} from "lucide-react";
+import api from "../../lib/api";
+import { PageLoader } from "../../components/ui/Spinner";
+import type { Member, Department } from "../../types";
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+/* ── Helpers ──────────────────────────────────────────────────────────────── */
 
 function fmt(date?: string) {
-  if (!date) return '—';
-  try { return format(new Date(date), 'dd MMM yyyy'); } catch { return '—'; }
+  if (!date) return "—";
+  try { return format(new Date(date), "dd MMM yyyy"); }
+  catch { return "—"; }
 }
 
 function capitalize(str?: string) {
-  if (!str) return '—';
-  return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  if (!str) return "—";
+  return str.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
+function getDeptNames(member: Member, departments?: Department[]): string[] {
+  const ids = member.departmentIds ?? [];
+  if (!ids.length) return [];
+  return ids.map((d: any) => {
+    if (typeof d === "object" && d?.name) return d.name;
+    const id = typeof d === "object" ? d?._id : d;
+    return departments?.find((dep) => dep._id === id)?.name || id || "";
+  }).filter(Boolean);
+}
+
+/* ── Design tokens (inline, CSS-var based) ────────────────────────────────── */
+
+const S = {
+  card: {
+    background: "var(--bg-card)",
+    border: "1px solid var(--bg-border)",
+    borderRadius: 16,
+  } as React.CSSProperties,
+
+  sectionHead: {
+    display: "flex", alignItems: "center", gap: 8,
+    paddingBottom: 12, marginBottom: 16,
+    borderBottom: "1px solid var(--bg-border)",
+  } as React.CSSProperties,
+
+  label: {
+    display: "block", fontSize: 11, fontWeight: 600,
+    textTransform: "uppercase" as const, letterSpacing: "0.08em",
+    color: "var(--text-muted)", marginBottom: 3,
+  } as React.CSSProperties,
+
+  value: {
+    fontSize: 13, fontWeight: 500,
+    color: "var(--text-primary)",
+  } as React.CSSProperties,
+
+  pill: {
+    display: "inline-flex", alignItems: "center",
+    padding: "2px 10px", borderRadius: 999,
+    fontSize: 11, fontWeight: 600,
+    background: "var(--bg-hover)",
+    color: "var(--text-secondary)",
+    border: "1px solid var(--bg-border)",
+    whiteSpace: "nowrap" as const,
+  } as React.CSSProperties,
+
+  chip: {
+    display: "inline-flex", alignItems: "center",
+    padding: "2px 8px", borderRadius: 6,
+    fontSize: 11, fontWeight: 500,
+    background: "var(--bg-hover)",
+    color: "var(--text-secondary)",
+    border: "1px solid var(--bg-border)",
+  } as React.CSSProperties,
+};
+
+/* ── Sub-components ───────────────────────────────────────────────────────── */
+
+function Monogram({ name, size = 48 }: { name: string; size?: number }) {
+  const parts = name.trim().split(" ");
+  const initials = ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--text-muted, #888)' }}>
-        {label}
-      </span>
-      <span className="text-sm font-medium" style={{ color: 'var(--text-primary, #fff)' }}>
-        {value || '—'}
-      </span>
+    <div style={{
+      width: size, height: size, borderRadius: "50%", flexShrink: 0,
+      display: "flex", alignItems: "center", justifyContent: "center",
+      background: "var(--bg-hover)", border: "1px solid var(--bg-border)",
+      color: "var(--text-secondary)", fontSize: size * 0.3,
+      fontWeight: 700, letterSpacing: "0.02em",
+    }}>
+      {initials}
     </div>
   );
 }
 
-function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+function StatusPill({ status }: { status: string }) {
+  return <span style={S.pill}>{capitalize(status)}</span>;
+}
+
+function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
   return (
-    <div
-      className="rounded-2xl p-5 space-y-4"
-      style={{
-        background: 'var(--bg-card, rgba(255,255,255,0.04))',
-        border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
-      }}
-    >
-      <div className="flex items-center gap-2 pb-2" style={{ borderBottom: '1px solid var(--bg-border, rgba(255,255,255,0.06))' }}>
-        <span style={{ color: '#DAA520' }}>{icon}</span>
-        <h3 className="text-sm font-semibold tracking-wide uppercase" style={{ color: 'var(--text-secondary, #ccc)' }}>
+    <div>
+      <span style={S.label}>{label}</span>
+      <span style={S.value}>{value || "—"}</span>
+    </div>
+  );
+}
+
+function SectionCard({
+  icon, title, children,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div style={{ ...S.card, padding: 20 }}>
+      <div style={S.sectionHead}>
+        <span style={{ color: "var(--text-muted)", display: "flex" }}>{icon}</span>
+        <h3 style={{
+          fontSize: 11, fontWeight: 700, textTransform: "uppercase",
+          letterSpacing: "0.1em", color: "var(--text-muted)", margin: 0,
+        }}>
           {title}
         </h3>
       </div>
@@ -56,14 +132,24 @@ function Section({ icon, title, children }: { icon: React.ReactNode; title: stri
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────────────────────────
+function InfoGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 24px",
+    }}>
+      {children}
+    </div>
+  );
+}
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
 
 export default function MemberDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
   const { data: member, isLoading, isError } = useQuery<Member>({
-    queryKey: ['member', id],
+    queryKey: ["member", id],
     queryFn: async () => {
       const res = await api.get(`/members/${id}`);
       return res.data.data as Member;
@@ -72,297 +158,240 @@ export default function MemberDetailPage() {
   });
 
   const { data: departments } = useQuery<Department[]>({
-    queryKey: ['departments-list'],
+    queryKey: ["departments-list"],
     queryFn: async () => {
-      const res = await api.get('/departments?limit=100');
+      const res = await api.get("/departments?limit=100");
       return res.data.data as Department[];
     },
   });
-
-  // Resolve department names from departmentIds
-  function getDeptNames(): string[] {
-    if (!member) return [];
-    const ids = member.departmentIds ?? [];
-    if (ids.length === 0) return [];
-    return ids.map((d: any) => {
-      if (typeof d === 'object' && d?.name) return d.name;
-      if (typeof d === 'object' && d?._id)
-        return departments?.find((dep) => dep._id === d._id)?.name || d._id;
-      if (typeof d === 'string')
-        return departments?.find((dep) => dep._id === d)?.name || d;
-      return '';
-    }).filter(Boolean);
-  }
 
   if (isLoading) return <PageLoader />;
 
   if (isError || !member) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[40vh] gap-4">
-        <p className="text-text-muted">Member not found.</p>
-        <button onClick={() => navigate('/members')} className="btn-ghost flex items-center gap-2">
+        <p style={{ color: "var(--text-muted)" }}>Member not found.</p>
+        <button onClick={() => navigate("/members")} className="btn-ghost">
           <ArrowLeft size={16} /> Back to Members
         </button>
       </div>
     );
   }
 
-  const deptNames = getDeptNames();
-  const fullName = `${member.firstName} ${member.lastName}`;
+  const deptNames = getDeptNames(member, departments);
+  const fullName  = `${member.firstName} ${member.lastName}`;
+  const m         = member as any; // for optional fields
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
-      <style>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
-        }
-        .detail-section {
-          animation: slideUp 0.35s ease both;
-        }
-        .detail-section:nth-child(1) { animation-delay: 0.05s; }
-        .detail-section:nth-child(2) { animation-delay: 0.10s; }
-        .detail-section:nth-child(3) { animation-delay: 0.15s; }
-        .detail-section:nth-child(4) { animation-delay: 0.20s; }
-        .detail-section:nth-child(5) { animation-delay: 0.25s; }
-        .detail-section:nth-child(6) { animation-delay: 0.30s; }
-        .gold-tag {
-          display: inline-flex; align-items: center;
-          padding: 2px 10px; border-radius: 999px;
-          font-size: 11px; font-weight: 600;
-          background: rgba(218,165,32,0.12);
-          color: #DAA520;
-          border: 1px solid rgba(218,165,32,0.25);
-        }
-        .milestone-dot {
-          width: 8px; height: 8px; border-radius: 50%;
-          background: #DAA520; flex-shrink: 0; margin-top: 4px;
-        }
-        .note-card {
-          border-left: 3px solid rgba(218,165,32,0.4);
-          padding: 10px 14px;
-          border-radius: 0 8px 8px 0;
-          background: rgba(218,165,32,0.04);
-        }
-      `}</style>
+    <div style={{ maxWidth: 900, margin: "0 auto", display: "flex", flexDirection: "column", gap: 20 }}>
 
-      {/* ── Back Button ── */}
+      {/* Back */}
       <button
-        onClick={() => navigate('/members')}
-        className="flex items-center gap-2 text-sm transition-colors duration-200 hover:opacity-80"
-        style={{ color: 'var(--text-muted, #888)' }}
+        onClick={() => navigate("/members")}
+        className="btn-ghost"
+        style={{ alignSelf: "flex-start" }}
       >
-        <ArrowLeft size={16} /> Back to Members
+        <ArrowLeft size={15} /> Back to Members
       </button>
 
-      {/* ── Hero Card ── */}
-      <div
-        className="detail-section rounded-2xl p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5"
-        style={{
-          background: 'var(--bg-card, rgba(255,255,255,0.04))',
-          border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
-        }}
-      >
-        <Avatar name={fullName} photoUrl={member.photoUrl} size="lg" />
+      {/* ── Hero Card ──────────────────────────────────────────────────────── */}
+      <div style={{ ...S.card, padding: 24 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
 
-        <div className="flex-1 space-y-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <h1 className="font-display font-bold text-2xl" style={{ color: 'var(--text-primary, #fff)' }}>
-              {fullName}
-            </h1>
-            <StatusBadge status={member.status} />
+          <Monogram name={fullName} size={64} />
+
+          <div style={{ flex: 1, minWidth: 200 }}>
+            {/* Name + status */}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 6 }}>
+              <h1 style={{ fontSize: 22, fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
+                {fullName}
+              </h1>
+              <StatusPill status={member.status} />
+            </div>
+
+            {/* ID + departments */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+              <span style={{ ...S.chip, fontFamily: "monospace", fontSize: 12 }}>
+                {member.membershipId}
+              </span>
+              {deptNames.map((n, i) => <span key={i} style={S.chip}>{n}</span>)}
+            </div>
+
+            {/* Contact strip */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16 }}>
+              {member.email && (
+                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+                  <Mail size={12} /> {member.email}
+                </span>
+              )}
+              {member.phone && (
+                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+                  <Phone size={12} /> {member.phone}
+                </span>
+              )}
+              {m.city && (
+                <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 12, color: "var(--text-muted)" }}>
+                  <MapPin size={12} /> {m.city}{m.state ? `, ${m.state}` : ""}
+                </span>
+              )}
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs px-2 py-0.5 rounded" style={{ background: 'rgba(218,165,32,0.1)', color: '#DAA520' }}>
-              {member.membershipId}
+          {/* Meta dates — top right */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 4, textAlign: "right" }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+              Joined {fmt(member.dateJoined)}
             </span>
-            {deptNames.map((name, i) => (
-              <span key={i} className="gold-tag">{name}</span>
-            ))}
-            {deptNames.length === 0 && (
-              <span className="text-xs" style={{ color: 'var(--text-muted, #888)' }}>No department</span>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-4 pt-1">
-            {member.email && (
-              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted, #888)' }}>
-                <Mail size={12} /> {member.email}
-              </span>
-            )}
-            {member.phone && (
-              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted, #888)' }}>
-                <Phone size={12} /> {member.phone}
-              </span>
-            )}
-            {(member as any).city && (
-              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'var(--text-muted, #888)' }}>
-                <MapPin size={12} /> {(member as any).city}, {(member as any).state || ''}
+            {member.createdAt && (
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                Added {fmt(member.createdAt)}
               </span>
             )}
           </div>
         </div>
       </div>
 
-      {/* ── Grid Layout ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* ── Two-column grid ────────────────────────────────────────────────── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 16 }}>
 
-        {/* Personal Information */}
-        <div className="detail-section">
-          <Section icon={<User size={15} />} title="Personal Information">
-            <div className="grid grid-cols-2 gap-4">
-              <InfoRow label="First Name" value={member.firstName} />
-              <InfoRow label="Last Name" value={member.lastName} />
-              {(member as any).middleName && (
-                <InfoRow label="Middle Name" value={(member as any).middleName} />
-              )}
-              <InfoRow label="Gender" value={capitalize(member.gender)} />
-              <InfoRow label="Date of Birth" value={fmt(member.dateOfBirth)} />
-              <InfoRow label="Age" value={member.age ? `${member.age} yrs` : undefined} />
-              <InfoRow label="Marital Status" value={capitalize(member.maritalStatus)} />
-              {(member as any).weddingAnniversary && (
-                <InfoRow label="Anniversary" value={fmt((member as any).weddingAnniversary)} />
-              )}
-            </div>
-          </Section>
-        </div>
+        {/* Personal */}
+        <SectionCard icon={<User size={14} />} title="Personal Information">
+          <InfoGrid>
+            <InfoRow label="First Name"     value={member.firstName} />
+            <InfoRow label="Last Name"      value={member.lastName} />
+            {m.middleName && <InfoRow label="Middle Name" value={m.middleName} />}
+            <InfoRow label="Gender"         value={capitalize(member.gender)} />
+            <InfoRow label="Date of Birth"  value={fmt(member.dateOfBirth)} />
+            <InfoRow label="Age"            value={member.age ? `${member.age} yrs` : undefined} />
+            <InfoRow label="Marital Status" value={capitalize(member.maritalStatus)} />
+            {m.weddingAnniversary && (
+              <InfoRow label="Anniversary"  value={fmt(m.weddingAnniversary)} />
+            )}
+          </InfoGrid>
+        </SectionCard>
 
-        {/* Contact Information */}
-        <div className="detail-section">
-          <Section icon={<Phone size={15} />} title="Contact Information">
-            <div className="grid grid-cols-2 gap-4">
-              <InfoRow label="Phone" value={member.phone} />
-              <InfoRow label="Alt. Phone" value={(member as any).alternatePhone} />
-              <InfoRow label="Email" value={member.email} />
-              <InfoRow label="Address" value={member.address} />
-              <InfoRow label="City" value={(member as any).city} />
-              <InfoRow label="State" value={(member as any).state} />
-              <InfoRow label="Country" value={(member as any).country} />
-            </div>
-          </Section>
-        </div>
+        {/* Contact */}
+        <SectionCard icon={<Phone size={14} />} title="Contact Information">
+          <InfoGrid>
+            <InfoRow label="Phone"      value={member.phone} />
+            <InfoRow label="Alt. Phone" value={m.alternatePhone} />
+            <InfoRow label="Email"      value={member.email} />
+            <InfoRow label="Address"    value={member.address} />
+            <InfoRow label="City"       value={m.city} />
+            <InfoRow label="State"      value={m.state} />
+            <InfoRow label="Country"    value={m.country} />
+          </InfoGrid>
+        </SectionCard>
 
-        {/* Professional */}
-        <div className="detail-section">
-          <Section icon={<Briefcase size={15} />} title="Professional">
-            <div className="grid grid-cols-2 gap-4">
-              <InfoRow label="Occupation" value={member.occupation} />
-              <InfoRow label="Employer" value={(member as any).employer} />
-            </div>
-          </Section>
-        </div>
-
-        {/* Church Information */}
-        <div className="detail-section">
-          <Section icon={<Church size={15} />} title="Church Information">
-            <div className="grid grid-cols-2 gap-4">
-              <InfoRow label="Status" value={<StatusBadge status={member.status} />} />
-              <InfoRow label="Membership ID" value={
-                <span className="font-mono text-xs" style={{ color: '#DAA520' }}>{member.membershipId}</span>
-              } />
-              <InfoRow label="Date Joined" value={fmt(member.dateJoined)} />
-              <InfoRow label="Baptism Status" value={capitalize((member as any).baptismStatus)} />
-              <InfoRow label="Baptism Date" value={fmt((member as any).baptismDate)} />
-              <InfoRow label="Worker Status" value={capitalize(member.workerStatus)} />
-              <div className="col-span-2">
-                <span className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--text-muted, #888)' }}>
-                  Departments
-                </span>
-                <div className="flex flex-wrap gap-1.5 mt-1.5">
-                  {deptNames.length > 0
-                    ? deptNames.map((n, i) => <span key={i} className="gold-tag">{n}</span>)
-                    : <span className="text-sm" style={{ color: 'var(--text-muted)' }}>—</span>
-                  }
-                </div>
+        {/* Church */}
+        <SectionCard icon={<Church size={14} />} title="Church Information">
+          <InfoGrid>
+            <InfoRow label="Status"         value={<StatusPill status={member.status} />} />
+            <InfoRow label="Membership ID"  value={
+              <span style={{ ...S.chip, fontFamily: "monospace" }}>{member.membershipId}</span>
+            } />
+            <InfoRow label="Date Joined"    value={fmt(member.dateJoined)} />
+            <InfoRow label="Baptism Status" value={capitalize(m.baptismStatus)} />
+            <InfoRow label="Baptism Date"   value={fmt(m.baptismDate)} />
+            <InfoRow label="Worker Status"  value={capitalize(member.workerStatus)} />
+            <div style={{ gridColumn: "1 / -1" }}>
+              <span style={S.label}>Departments</span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 4 }}>
+                {deptNames.length > 0
+                  ? deptNames.map((n, i) => <span key={i} style={S.chip}>{n}</span>)
+                  : <span style={{ fontSize: 13, color: "var(--text-muted)" }}>—</span>
+                }
               </div>
             </div>
-          </Section>
-        </div>
+          </InfoGrid>
+        </SectionCard>
+
+        {/* Professional */}
+        <SectionCard icon={<Briefcase size={14} />} title="Professional">
+          <InfoGrid>
+            <InfoRow label="Occupation" value={member.occupation} />
+            <InfoRow label="Employer"   value={m.employer} />
+          </InfoGrid>
+        </SectionCard>
       </div>
 
-      {/* ── Spiritual Milestones ── */}
-      {(member as any).spiritualMilestones?.length > 0 && (
-        <div className="detail-section">
-          <Section icon={<Star size={15} />} title="Spiritual Milestones">
-            <div className="space-y-3">
-              {(member as any).spiritualMilestones.map((m: any, i: number) => (
-                <div key={i} className="flex gap-3">
-                  <div className="milestone-dot mt-1.5" />
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                      {capitalize(m.type)} {m.title ? `— ${m.title}` : ''}
-                    </p>
-                    {m.date && (
-                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{fmt(m.date)}</p>
-                    )}
-                    {m.notes && (
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{m.notes}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-        </div>
-      )}
-
-      {/* ── Pastoral Notes ── */}
-      {(member as any).pastoralNotes?.length > 0 && (
-        <div className="detail-section">
-          <Section icon={<BookOpen size={15} />} title="Pastoral Notes">
-            <div className="space-y-3">
-              {(member as any).pastoralNotes.map((n: any, i: number) => (
-                <div key={i} className="note-card">
-                  <p className="text-sm" style={{ color: 'var(--text-primary)' }}>{n.note || n.content || n.text}</p>
-                  <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-                    {n.createdAt ? fmt(n.createdAt) : ''}
-                    {n.author ? ` · ${n.author}` : ''}
+      {/* ── Spiritual Milestones ──────────────────────────────────────────── */}
+      {m.spiritualMilestones?.length > 0 && (
+        <SectionCard icon={<Star size={14} />} title="Spiritual Milestones">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {m.spiritualMilestones.map((ms: any, i: number) => (
+              <div key={i} style={{ display: "flex", gap: 12 }}>
+                <div style={{
+                  width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                  background: "var(--text-muted)", marginTop: 5,
+                }} />
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", margin: "0 0 2px" }}>
+                    {capitalize(ms.type)}{ms.title ? ` — ${ms.title}` : ""}
                   </p>
+                  {ms.date && <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 2px" }}>{fmt(ms.date)}</p>}
+                  {ms.notes && <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>{ms.notes}</p>}
                 </div>
-              ))}
-            </div>
-          </Section>
-        </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
       )}
 
-      {/* ── Transfer Records ── */}
-      {(member as any).transferRecords?.length > 0 && (
-        <div className="detail-section">
-          <Section icon={<GitBranch size={15} />} title="Transfer Records">
-            <div className="space-y-3">
-              {(member as any).transferRecords.map((t: any, i: number) => (
-                <div key={i} className="flex gap-3">
-                  <div className="milestone-dot" style={{ background: '#6366f1' }} />
-                  <div>
-                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                      {t.from || '—'} → {t.to || '—'}
-                    </p>
-                    {t.date && (
-                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{fmt(t.date)}</p>
-                    )}
-                    {t.reason && (
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-secondary)' }}>{t.reason}</p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </Section>
-        </div>
+      {/* ── Pastoral Notes ────────────────────────────────────────────────── */}
+      {m.pastoralNotes?.length > 0 && (
+        <SectionCard icon={<BookOpen size={14} />} title="Pastoral Notes">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {m.pastoralNotes.map((n: any, i: number) => (
+              <div key={i} style={{
+                padding: "10px 14px", borderRadius: 8,
+                background: "var(--bg-hover)",
+                border: "1px solid var(--bg-border)",
+                borderLeft: "3px solid var(--bg-border)",
+              }}>
+                <p style={{ fontSize: 13, color: "var(--text-primary)", margin: "0 0 4px" }}>
+                  {n.note || n.content || n.text}
+                </p>
+                <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>
+                  {n.createdAt ? fmt(n.createdAt) : ""}{n.author ? ` · ${n.author}` : ""}
+                </p>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
       )}
 
-      {/* ── Meta ── */}
-      <div
-        className="detail-section rounded-2xl px-5 py-3 flex flex-wrap gap-6"
-        style={{
-          background: 'var(--bg-card, rgba(255,255,255,0.02))',
-          border: '1px solid var(--bg-border, rgba(255,255,255,0.06))',
-        }}
-      >
-        <InfoRow label="Created" value={fmt(member.createdAt)} />
-        <InfoRow label="Last Updated" value={fmt(member.updatedAt)} />
+      {/* ── Transfer Records ─────────────────────────────────────────────── */}
+      {m.transferRecords?.length > 0 && (
+        <SectionCard icon={<GitBranch size={14} />} title="Transfer Records">
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {m.transferRecords.map((t: any, i: number) => (
+              <div key={i} style={{ display: "flex", gap: 12 }}>
+                <div style={{
+                  width: 7, height: 7, borderRadius: "50%", flexShrink: 0,
+                  background: "var(--text-muted)", marginTop: 5,
+                }} />
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 500, color: "var(--text-primary)", margin: "0 0 2px" }}>
+                    {t.from || "—"} → {t.to || "—"}
+                  </p>
+                  {t.date && <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 2px" }}>{fmt(t.date)}</p>}
+                  {t.reason && <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>{t.reason}</p>}
+                </div>
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+      )}
+
+      {/* ── Footer meta ──────────────────────────────────────────────────── */}
+      <div style={{
+        ...S.card, padding: "12px 20px",
+        display: "flex", gap: 32, flexWrap: "wrap",
+      }}>
+        <InfoRow label="Record Created"  value={fmt(member.createdAt)} />
+        <InfoRow label="Last Updated"    value={fmt(member.updatedAt)} />
       </div>
     </div>
   );
-}
+} 

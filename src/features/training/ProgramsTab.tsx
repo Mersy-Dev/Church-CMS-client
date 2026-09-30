@@ -1,5 +1,6 @@
 /**
  * ChurchOS — src/features/training/ProgramsTab.tsx
+ * Color scheme: Logo Navy #1A56A0 + Gold #D4A93B + Sky #1E90FF
  */
 
 import { useState } from 'react';
@@ -16,14 +17,23 @@ import { PageLoader } from '../../components/ui/Spinner';
 import EmptyState from '../../components/ui/EmptyState';
 import type { TrainingProgram, ProgramType, CurriculumItem } from '../../types/training.types';
 
+// ── Color Palette (Church Logo) ──────────────────────────────────────────────
+const COLORS = {
+  navy: '#1A56A0',      // Primary: Book spine blue
+  skyBlue: '#1E90FF',   // Secondary: Lighter blue accent
+  gold: '#D4A93B',      // Accent: Logo gold
+  darkNavy: '#0A1628',  // Dark background tone
+  lightNavy: '#2563EB', // Light navy for variations
+};
+
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PROGRAM_TYPES: Record<ProgramType, { label: string; color: string }> = {
-  integration_class:  { label: 'Integration Class',  color: '#DAA520' },
-  discipleship_track: { label: 'Discipleship Track', color: '#5c9ee0' },
-  bible_study:        { label: 'Bible Study',         color: '#5ce08a' },
-  leadership:         { label: 'Leadership',          color: '#c05ce0' },
-  marriage_prep:      { label: 'Marriage Prep',       color: '#e08a5c' },
-  other:              { label: 'Other',               color: '#888' },
+  integration_class:  { label: 'Integration Class',  color: COLORS.gold },
+  discipleship_track: { label: 'Discipleship Track', color: COLORS.navy },
+  bible_study:        { label: 'Bible Study',         color: COLORS.skyBlue },
+  leadership:         { label: 'Leadership',          color: COLORS.lightNavy },
+  marriage_prep:      { label: 'Marriage Prep',       color: '#8B5CF6' }, // Purple accent
+  other:              { label: 'Other',               color: '#6B7280' },
 };
 
 // ── Form State ────────────────────────────────────────────────────────────────
@@ -54,54 +64,93 @@ function ProgramCard({
 
   return (
     <div
-      className="rounded-2xl overflow-hidden cursor-pointer"
+      className="rounded-2xl overflow-hidden cursor-pointer group"
       style={{
-        background: 'var(--bg-card, rgba(255,255,255,0.04))',
-        border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
-        transition: 'box-shadow 0.2s, border-color 0.2s, transform 0.2s',
+        background: 'linear-gradient(135deg, rgba(26, 86, 160, 0.06) 0%, rgba(30, 144, 255, 0.03) 100%)',
+        border: `1.5px solid ${COLORS.navy}20`,
+        transition: 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
       }}
       onClick={onClick}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = 'rgba(218,165,32,0.3)';
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(-2px)';
+        (e.currentTarget as HTMLElement).style.borderColor = `${COLORS.navy}50`;
+        (e.currentTarget as HTMLElement).style.boxShadow = `0 8px 24px ${COLORS.navy}20`;
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)';
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLElement).style.borderColor = 'var(--bg-border, rgba(255,255,255,0.08))';
+        (e.currentTarget as HTMLElement).style.borderColor = `${COLORS.navy}20`;
+        (e.currentTarget as HTMLElement).style.boxShadow = 'none';
         (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
       }}
     >
-      <div className="h-1 w-full" style={{ background: typeInfo.color }} />
+      <div className="h-1.5 w-full" style={{ background: typeInfo.color }} />
       <div className="p-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
               <span
-                className="text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: `${typeInfo.color}18`, color: typeInfo.color, border: `1px solid ${typeInfo.color}28` }}
+                className="text-xs px-3 py-1 rounded-full font-semibold"
+                style={{ 
+                  background: `${typeInfo.color}12`, 
+                  color: typeInfo.color, 
+                  border: `1px solid ${typeInfo.color}40` 
+                }}
               >
                 {typeInfo.label}
               </span>
               {!program.isActive && (
-                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)' }}>
+                <span 
+                  className="text-xs px-3 py-1 rounded-full font-medium" 
+                  style={{ background: `${COLORS.navy}08`, color: `${COLORS.navy}80` }}
+                >
                   Inactive
                 </span>
               )}
             </div>
-            <h3 className="font-display font-bold text-base" style={{ color: 'var(--text-primary)' }}>{program.name}</h3>
+            <h3 
+              className="font-display font-bold text-base leading-tight" 
+              style={{ color: COLORS.darkNavy }}
+            >
+              {program.name}
+            </h3>
             {program.description && (
-              <p className="text-xs mt-1 line-clamp-2" style={{ color: 'var(--text-muted)' }}>{program.description}</p>
+              <p 
+                className="text-xs mt-2 line-clamp-2" 
+                style={{ color: `${COLORS.navy}75` }}
+              >
+                {program.description}
+              </p>
             )}
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
               onClick={(e) => { e.stopPropagation(); onEdit(); }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 text-text-muted hover:text-text-primary transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+              style={{ 
+                background: `${COLORS.navy}08`,
+                color: COLORS.navy,
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = `${COLORS.navy}15`;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = `${COLORS.navy}08`;
+              }}
             >
               <Pencil size={13} />
             </button>
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-text-muted hover:text-red-400 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg transition-all"
+              style={{ 
+                background: '#EF444420',
+                color: '#EF4444',
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = '#EF444430';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = '#EF444420';
+              }}
             >
               <Trash2 size={13} />
             </button>
@@ -111,22 +160,34 @@ function ProgramCard({
         {/* Meta pills */}
         <div className="flex flex-wrap gap-2 mt-3">
           {program.durationWeeks && (
-            <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+            <span 
+              className="text-xs px-2.5 py-1 rounded-lg font-medium"
+              style={{ background: `${COLORS.navy}08`, color: COLORS.navy }}
+            >
               {program.durationWeeks} weeks
             </span>
           )}
           {program.totalSessions && (
-            <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+            <span 
+              className="text-xs px-2.5 py-1 rounded-lg font-medium"
+              style={{ background: `${COLORS.navy}08`, color: COLORS.navy }}
+            >
               {program.totalSessions} sessions
             </span>
           )}
           {program.cohortCount !== undefined && (
-            <span className="text-xs px-2 py-1 rounded-lg" style={{ background: 'rgba(255,255,255,0.05)', color: 'var(--text-secondary)' }}>
+            <span 
+              className="text-xs px-2.5 py-1 rounded-lg font-medium"
+              style={{ background: `${COLORS.skyBlue}12`, color: COLORS.skyBlue }}
+            >
               {program.cohortCount} cohort{program.cohortCount !== 1 ? 's' : ''}
             </span>
           )}
           {program.promoteOnCompletion && (
-            <span className="text-xs px-2 py-1 rounded-lg flex items-center gap-1" style={{ background: 'rgba(92,224,138,0.08)', color: '#5ce08a' }}>
+            <span 
+              className="text-xs px-2.5 py-1 rounded-lg flex items-center gap-1 font-medium"
+              style={{ background: `${COLORS.gold}15`, color: COLORS.gold }}
+            >
               <GraduationCap size={10} /> Promotes to {program.promoteToStatus || 'member'}
             </span>
           )}
@@ -137,29 +198,33 @@ function ProgramCard({
           <>
             <button
               onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v); }}
-              className="flex items-center gap-1.5 text-xs mt-3 transition-opacity hover:opacity-70"
+              className="flex items-center gap-1.5 text-xs mt-3 transition-opacity hover:opacity-70 font-semibold"
               style={{ color: typeInfo.color }}
             >
               {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
               {expanded ? 'Hide' : 'View'} Curriculum ({program.curriculum.length} weeks)
             </button>
             {expanded && (
-              <div className="mt-3 space-y-1.5">
+              <div className="mt-3 space-y-2">
                 {program.curriculum.map((c) => (
                   <div
                     key={c.week}
-                    className="flex items-start gap-3 p-2.5 rounded-lg"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--bg-border)' }}
+                    className="flex items-start gap-3 p-3 rounded-lg"
+                    style={{ background: `${COLORS.navy}06`, border: `1px solid ${COLORS.navy}15` }}
                   >
                     <span
                       className="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0"
-                      style={{ background: `${typeInfo.color}18`, color: typeInfo.color }}
+                      style={{ background: typeInfo.color, color: '#FFF' }}
                     >
                       {c.week}
                     </span>
-                    <div>
-                      <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>{c.topic}</p>
-                      {c.description && <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{c.description}</p>}
+                    <div className="flex-1">
+                      <p className="text-xs font-semibold" style={{ color: COLORS.darkNavy }}>{c.topic}</p>
+                      {c.description && (
+                        <p className="text-xs mt-1" style={{ color: `${COLORS.navy}70` }}>
+                          {c.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -229,85 +294,187 @@ function ProgramFormModal({
       <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
         <div className="grid grid-cols-2 gap-4">
           <div className="form-field col-span-2">
-            <label className="label">Program Name *</label>
-            <input className="input" value={form.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. New Believers Class" />
+            <label className="label" style={{ color: COLORS.navy }}>Program Name *</label>
+            <input 
+              className="input" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
+              value={form.name} 
+              onChange={(e) => set('name', e.target.value)} 
+              placeholder="e.g. New Believers Class" 
+            />
           </div>
           <div className="form-field">
-            <label className="label">Type</label>
-            <select className="input" value={form.type} onChange={(e) => set('type', e.target.value as ProgramType)}>
+            <label className="label" style={{ color: COLORS.navy }}>Type</label>
+            <select 
+              className="input" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
+              value={form.type} 
+              onChange={(e) => set('type', e.target.value as ProgramType)}
+            >
               {Object.entries(PROGRAM_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
           <div className="form-field">
-            <label className="label">Sessions / Week</label>
-            <input type="number" min={1} className="input" value={form.sessionsPerWeek} onChange={(e) => set('sessionsPerWeek', e.target.value)} />
+            <label className="label" style={{ color: COLORS.navy }}>Sessions / Week</label>
+            <input 
+              type="number" 
+              min={1} 
+              className="input" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
+              value={form.sessionsPerWeek} 
+              onChange={(e) => set('sessionsPerWeek', e.target.value)} 
+            />
           </div>
           <div className="form-field">
-            <label className="label">Duration (weeks)</label>
-            <input type="number" min={1} className="input" value={form.durationWeeks} onChange={(e) => set('durationWeeks', e.target.value)} placeholder="e.g. 6" />
+            <label className="label" style={{ color: COLORS.navy }}>Duration (weeks)</label>
+            <input 
+              type="number" 
+              min={1} 
+              className="input" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
+              value={form.durationWeeks} 
+              onChange={(e) => set('durationWeeks', e.target.value)} 
+              placeholder="e.g. 6" 
+            />
           </div>
         </div>
 
         <div className="form-field">
-          <label className="label">Description</label>
-          <textarea className="input resize-none h-16" value={form.description} onChange={(e) => set('description', e.target.value)} placeholder="What is this program about?" />
+          <label className="label" style={{ color: COLORS.navy }}>Description</label>
+          <textarea 
+            className="input resize-none h-16" 
+            style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
+            value={form.description} 
+            onChange={(e) => set('description', e.target.value)} 
+            placeholder="What is this program about?" 
+          />
         </div>
 
         {/* Promotion */}
-        <div className="p-3 rounded-xl space-y-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--bg-border)' }}>
+        <div 
+          className="p-4 rounded-xl space-y-3" 
+          style={{ background: `${COLORS.navy}08`, border: `1px solid ${COLORS.navy}20` }}
+        >
           <label className="flex items-center gap-2 cursor-pointer">
-            <input type="checkbox" className="accent-yellow-500" checked={form.promoteOnCompletion} onChange={(e) => set('promoteOnCompletion', e.target.checked)} />
-            <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>Auto-promote member on graduation</span>
+            <input 
+              type="checkbox" 
+              style={{ accentColor: COLORS.gold }}
+              checked={form.promoteOnCompletion} 
+              onChange={(e) => set('promoteOnCompletion', e.target.checked)} 
+            />
+            <span className="text-sm font-medium" style={{ color: COLORS.navy }}>
+              Auto-promote member on graduation
+            </span>
           </label>
           {form.promoteOnCompletion && (
             <div className="form-field">
-              <label className="label">Promote to Status</label>
-              <input className="input" value={form.promoteToStatus} onChange={(e) => set('promoteToStatus', e.target.value)} placeholder="e.g. active" />
+              <label className="label" style={{ color: COLORS.navy }}>Promote to Status</label>
+              <input 
+                className="input" 
+                style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
+                value={form.promoteToStatus} 
+                onChange={(e) => set('promoteToStatus', e.target.value)} 
+                placeholder="e.g. active" 
+              />
             </div>
           )}
         </div>
 
         {/* Curriculum */}
         <div>
-          <p className="label mb-2">Curriculum</p>
-          <div className="space-y-1.5 mb-3">
+          <p className="label mb-3 font-semibold" style={{ color: COLORS.navy }}>Curriculum</p>
+          <div className="space-y-2 mb-3">
             {form.curriculum.map((c, i) => (
-              <div key={i} className="flex items-center gap-2 p-2 rounded-lg" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bg-border)' }}>
-                <span className="text-xs font-bold w-5 text-center" style={{ color: '#DAA520' }}>W{c.week}</span>
-                <span className="flex-1 text-xs" style={{ color: 'var(--text-primary)' }}>{c.topic}</span>
-                <button onClick={() => removeWeek(i)} className="text-text-muted hover:text-red-400"><Trash2 size={12} /></button>
+              <div 
+                key={i} 
+                className="flex items-center gap-2 p-3 rounded-lg" 
+                style={{ background: `${COLORS.navy}06`, border: `1px solid ${COLORS.navy}15` }}
+              >
+                <span 
+                  className="text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full flex-shrink-0" 
+                  style={{ background: COLORS.navy, color: '#FFF' }}
+                >
+                  {c.week}
+                </span>
+                <span className="flex-1 text-xs font-medium" style={{ color: COLORS.darkNavy }}>{c.topic}</span>
+                <button 
+                  onClick={() => removeWeek(i)} 
+                  className="text-red-500 hover:text-red-600 transition-colors"
+                >
+                  <Trash2 size={12} />
+                </button>
               </div>
             ))}
           </div>
           <div className="grid grid-cols-12 gap-2">
             <input
-              type="number" min={1} placeholder="Wk"
-              className="input col-span-2 text-center"
+              type="number" 
+              min={1} 
+              placeholder="Wk"
+              className="input col-span-2 text-center" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
               value={curriculumInput.week}
               onChange={(e) => setCurriculumInput((p) => ({ ...p, week: e.target.value }))}
             />
             <input
               placeholder="Topic"
-              className="input col-span-6"
+              className="input col-span-6" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
               value={curriculumInput.topic}
               onChange={(e) => setCurriculumInput((p) => ({ ...p, topic: e.target.value }))}
             />
             <input
               placeholder="Notes (optional)"
-              className="input col-span-3"
+              className="input col-span-3" 
+              style={{ borderColor: `${COLORS.navy}25`, color: COLORS.darkNavy }}
               value={curriculumInput.description}
               onChange={(e) => setCurriculumInput((p) => ({ ...p, description: e.target.value }))}
             />
-            <button onClick={addWeek} className="col-span-1 flex items-center justify-center rounded-xl btn-gold p-0">
+            <button 
+              onClick={addWeek} 
+              className="col-span-1 flex items-center justify-center rounded-xl p-0 transition-all font-semibold text-white"
+              style={{ background: COLORS.navy }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = COLORS.darkNavy;
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = COLORS.navy;
+              }}
+            >
               <Plus size={16} />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-bg-border mt-4">
-        <button onClick={onClose} className="btn-ghost">Cancel</button>
-        <button onClick={submit} disabled={mutation.isPending} className="btn-gold">
+      <div className="flex justify-end gap-3 pt-4 border-t" style={{ borderColor: `${COLORS.navy}15` }}>
+        <button 
+          onClick={onClose} 
+          className="px-4 py-2 rounded-lg font-medium transition-all"
+          style={{ background: `${COLORS.navy}08`, color: COLORS.navy }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = `${COLORS.navy}12`;
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = `${COLORS.navy}08`;
+          }}
+        >
+          Cancel
+        </button>
+        <button 
+          onClick={submit} 
+          disabled={mutation.isPending} 
+          className="px-4 py-2 rounded-lg font-semibold transition-all text-white disabled:opacity-50"
+          style={{ background: COLORS.gold }}
+          onMouseEnter={(e) => {
+            if (!mutation.isPending) {
+              (e.currentTarget as HTMLElement).style.background = '#C39B2F';
+            }
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = COLORS.gold;
+          }}
+        >
           {mutation.isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Create Program'}
         </button>
       </div>
@@ -357,10 +524,20 @@ export default function ProgramsTab() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setTypeFilter('all')}
-            className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+            className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-all"
             style={typeFilter === 'all'
-              ? { background: 'rgba(218,165,32,0.12)', color: '#DAA520', border: '1px solid rgba(218,165,32,0.25)' }
-              : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid var(--bg-border)' }}
+              ? { background: `${COLORS.navy}20`, color: COLORS.navy, border: `1px solid ${COLORS.navy}40` }
+              : { background: `${COLORS.navy}08`, color: COLORS.navy, border: `1px solid ${COLORS.navy}20` }}
+            onMouseEnter={(e) => {
+              if (typeFilter !== 'all') {
+                (e.currentTarget as HTMLElement).style.background = `${COLORS.navy}12`;
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (typeFilter !== 'all') {
+                (e.currentTarget as HTMLElement).style.background = `${COLORS.navy}08`;
+              }
+            }}
           >
             All
           </button>
@@ -368,16 +545,36 @@ export default function ProgramsTab() {
             <button
               key={k}
               onClick={() => setTypeFilter(k as ProgramType)}
-              className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all"
+              className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-all"
               style={typeFilter === k
-                ? { background: `${v.color}18`, color: v.color, border: `1px solid ${v.color}30` }
-                : { background: 'rgba(255,255,255,0.04)', color: 'var(--text-muted)', border: '1px solid var(--bg-border)' }}
+                ? { background: `${v.color}20`, color: v.color, border: `1px solid ${v.color}40` }
+                : { background: `${v.color}08`, color: v.color, border: `1px solid ${v.color}20` }}
+              onMouseEnter={(e) => {
+                if (typeFilter !== k) {
+                  (e.currentTarget as HTMLElement).style.background = `${v.color}12`;
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (typeFilter !== k) {
+                  (e.currentTarget as HTMLElement).style.background = `${v.color}08`;
+                }
+              }}
             >
               {v.label}
             </button>
           ))}
         </div>
-        <button onClick={() => { setEditing(undefined); setShowForm(true); }} className="btn-gold flex items-center gap-2 text-sm">
+        <button 
+          onClick={() => { setEditing(undefined); setShowForm(true); }} 
+          className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg font-semibold text-white transition-all"
+          style={{ background: COLORS.gold }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = '#C39B2F';
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = COLORS.gold;
+          }}
+        >
           <Plus size={14} /> New Program
         </button>
       </div>
@@ -390,7 +587,21 @@ export default function ProgramsTab() {
           icon="📚"
           title="No programs found"
           description={typeFilter === 'all' ? 'Create your first training program' : 'No programs for this type'}
-          action={<button onClick={() => setShowForm(true)} className="btn-gold">Create Program</button>}
+          action={
+            <button 
+              onClick={() => setShowForm(true)} 
+              className="px-4 py-2 rounded-lg font-semibold text-white transition-all"
+              style={{ background: COLORS.gold }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLElement).style.background = '#C39B2F';
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLElement).style.background = COLORS.gold;
+              }}
+            >
+              Create Program
+            </button>
+          }
         />
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -416,15 +627,30 @@ export default function ProgramsTab() {
 
       {/* Delete Confirm */}
       <Modal isOpen={!!deleting} onClose={() => setDeleting(null)} title="Delete Program" size="sm">
-        <p className="text-text-secondary mb-5">
+        <p className="text-text-secondary mb-5" style={{ color: COLORS.navy }}>
           This will soft-delete the program. Existing cohorts will be unaffected.
         </p>
         <div className="flex justify-end gap-3">
-          <button onClick={() => setDeleting(null)} className="btn-ghost">Cancel</button>
+          <button 
+            onClick={() => setDeleting(null)} 
+            className="px-4 py-2 rounded-lg font-medium transition-all"
+            style={{ background: `${COLORS.navy}08`, color: COLORS.navy }}
+          >
+            Cancel
+          </button>
           <button
             onClick={() => deleting && deleteMutation.mutate(deleting)}
             disabled={deleteMutation.isPending}
-            className="btn-danger"
+            className="px-4 py-2 rounded-lg font-semibold text-white transition-all disabled:opacity-50"
+            style={{ background: '#EF4444' }}
+            onMouseEnter={(e) => {
+              if (!deleteMutation.isPending) {
+                (e.currentTarget as HTMLElement).style.background = '#DC2626';
+              }
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = '#EF4444';
+            }}
           >
             {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           </button>

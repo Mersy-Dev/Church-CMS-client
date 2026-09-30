@@ -23,7 +23,7 @@ function StatCard({ label, value, color, icon }: { label: string; value: number;
       className="rounded-xl p-4"
       style={{
         background: 'var(--bg-card, rgba(255,255,255,0.04))',
-        border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
+        border: `1px solid ${color}20`,
       }}
     >
       <div className="flex items-center justify-between mb-2">
@@ -42,7 +42,8 @@ function TabButton({ label, icon, active, onClick }: { label: string; icon: Reac
       className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-150"
       style={
         active
-          ? { background: 'rgba(218,165,32,0.12)', color: '#DAA520', border: '1px solid rgba(218,165,32,0.25)' }
+          /* Active tab: navy (was gold) */
+          ? { background: 'rgba(26,86,160,0.14)', color: '#4A8FD4', border: '1px solid rgba(26,86,160,0.3)' }
           : { color: 'var(--text-muted)', border: '1px solid transparent' }
       }
     >
@@ -66,6 +67,11 @@ export default function TrainingPage() {
   return (
     <div className="space-y-6">
       <style>{`
+        /* ── Word House Brand Colors ──────────────────────────────────────
+           Dominant : #1A56A0  (Word House Navy Blue)
+           Accent   : #C41E3A  (Word House Crimson)
+        ────────────────────────────────────────────────────────────────── */
+
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(10px); }
           to   { opacity: 1; transform: translateY(0); }
@@ -85,15 +91,15 @@ export default function TrainingPage() {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats — navy/crimson palette */}
       {stats && (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 fade-up">
-          <StatCard label="Active Programs"     value={stats.totalPrograms}       color="#DAA520"  icon={<BookOpen size={15}      />} />
-          <StatCard label="Active Cohorts"      value={stats.activeCohorts}       color="#5c9ee0"  icon={<Users size={15}         />} />
-          <StatCard label="Enrolled"            value={stats.currentlyEnrolled}   color="#5ce08a"  icon={<TrendingUp size={15}    />} />
-          <StatCard label="Graduated"           value={stats.totalGraduated}      color="#c05ce0"  icon={<Award size={15}         />} />
-          <StatCard label="Mentorships"         value={stats.activeMentorships}   color="#e08a5c"  icon={<Heart size={15}         />} />
-          <StatCard label="Integration Active"  value={stats.integrationClass?.active ?? 0} color="#e05c5c" icon={<GraduationCap size={15} />} />
+          <StatCard label="Active Programs"    value={stats.totalPrograms}                   color="#1A56A0"  icon={<BookOpen size={15}      />} />
+          <StatCard label="Active Cohorts"     value={stats.activeCohorts}                   color="#4A8FD4"  icon={<Users size={15}         />} />
+          <StatCard label="Enrolled"           value={stats.currentlyEnrolled}               color="#2E8B57"  icon={<TrendingUp size={15}    />} />
+          <StatCard label="Graduated"          value={stats.totalGraduated}                  color="#C41E3A"  icon={<Award size={15}         />} />
+          <StatCard label="Mentorships"        value={stats.activeMentorships}               color="#C47A1E"  icon={<Heart size={15}         />} />
+          <StatCard label="Integration Active" value={stats.integrationClass?.active ?? 0}   color="#7B3FA0"  icon={<GraduationCap size={15} />} />
         </div>
       )}
 
@@ -103,7 +109,7 @@ export default function TrainingPage() {
           className="rounded-xl p-4 fade-up"
           style={{
             background: 'var(--bg-card, rgba(255,255,255,0.04))',
-            border: '1px solid var(--bg-border, rgba(255,255,255,0.08))',
+            border: '1px solid rgba(26,86,160,0.2)',
           }}
         >
           <p className="text-xs font-semibold text-text-muted mb-3 uppercase tracking-wide">
@@ -111,10 +117,10 @@ export default function TrainingPage() {
           </p>
           <div className="flex flex-wrap gap-4">
             {[
-              { label: 'Enrolled',  value: stats.integrationClass.enrolled,  color: '#5c9ee0' },
-              { label: 'Active',    value: stats.integrationClass.active,    color: '#5ce08a' },
-              { label: 'Graduated', value: stats.integrationClass.graduated, color: '#DAA520' },
-              { label: 'Dropped',   value: stats.integrationClass.dropped,   color: '#e05c5c' },
+              { label: 'Enrolled',  value: stats.integrationClass.enrolled,  color: '#4A8FD4' }, // light navy
+              { label: 'Active',    value: stats.integrationClass.active,    color: '#2E8B57' }, // green
+              { label: 'Graduated', value: stats.integrationClass.graduated, color: '#1A56A0' }, // navy
+              { label: 'Dropped',   value: stats.integrationClass.dropped,   color: '#C41E3A' }, // crimson
             ].map((s) => (
               <div key={s.label} className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full" style={{ background: s.color }} />
@@ -128,9 +134,9 @@ export default function TrainingPage() {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2">
-        <TabButton label="Programs"    icon={<BookOpen size={14} />}      active={tab === 'programs'}    onClick={() => setTab('programs')}    />
-        <TabButton label="Cohorts"     icon={<Users size={14} />}         active={tab === 'cohorts'}     onClick={() => setTab('cohorts')}     />
-        <TabButton label="Mentorships" icon={<Heart size={14} />}         active={tab === 'mentorships'} onClick={() => setTab('mentorships')} />
+        <TabButton label="Programs"    icon={<BookOpen size={14} />} active={tab === 'programs'}    onClick={() => setTab('programs')}    />
+        <TabButton label="Cohorts"     icon={<Users size={14} />}   active={tab === 'cohorts'}     onClick={() => setTab('cohorts')}     />
+        <TabButton label="Mentorships" icon={<Heart size={14} />}   active={tab === 'mentorships'} onClick={() => setTab('mentorships')} />
       </div>
 
       {/* Tab Content */}

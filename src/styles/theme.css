@@ -1,0 +1,160 @@
+/*
+ * ChurchOS — src/styles/theme.css
+ * Two themes: <html data-theme="dark | light">
+ */
+
+/* ══ DARK (default) ══════════════════════════════════════════════════════════ */
+:root,
+[data-theme="dark"] {
+  --bg-base:        #0d1117;
+  --bg-surface:     #161b22;
+  --bg-card:        #161b22;
+  --bg-hover:       rgba(255,255,255,0.05);
+  --bg-border:      rgba(255,255,255,0.08);
+
+  --text-primary:   #f0f6fc;
+  --text-secondary: #c9d1d9;
+  --text-muted:     #8b949e;
+
+  --gold:           #d4a017;
+  --gold-light:     #e8b420;
+  --gold-dark:      #b8880f;
+
+  --color-danger:   #ef4444;
+  --shadow-modal:   0 24px 64px rgba(0,0,0,0.6);
+  --shadow-card:    0 4px 24px rgba(0,0,0,0.3);
+
+  color-scheme: dark;
+}
+
+/* ══ LIGHT ═══════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* All solid values — no alpha/transparent backgrounds on white */
+  --bg-base:        #f0f2f5;
+  --bg-surface:     #ffffff;
+  --bg-card:        #ffffff;
+  --bg-hover:       #e9ecf0;   /* solid light grey */
+  --bg-border:      #ced4da;   /* solid visible border */
+
+  /* High-contrast text */
+  --text-primary:   #101828;   /* near-black */
+  --text-secondary: #344054;   /* dark grey */
+  --text-muted:     #667085;   /* medium grey — still readable */
+
+  --gold:           #c49010;   /* slightly deeper on light bg */
+  --gold-light:     #d4a017;
+  --gold-dark:      #a37a0c;
+
+  --color-danger:   #dc2626;
+  --shadow-modal:   0 24px 64px rgba(0,0,0,0.12);
+  --shadow-card:    0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+
+  color-scheme: light;
+}
+
+/* ══ Light overrides — elements that hardcode dark values ════════════════════ */
+[data-theme="light"] body,
+[data-theme="light"] #root {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .sidebar,
+[data-theme="light"] aside[class*="sidebar"],
+[data-theme="light"] nav[class*="sidebar"] {
+  background: var(--bg-surface) !important;
+  border-right: 1px solid var(--bg-border) !important;
+}
+
+[data-theme="light"] .card,
+[data-theme="light"] [class*="card"] {
+  background: var(--bg-card) !important;
+  border-color: var(--bg-border) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+[data-theme="light"] .input,
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background: #ffffff !important;
+  color: var(--text-primary) !important;
+  border-color: var(--bg-border) !important;
+}
+
+[data-theme="light"] .input:focus,
+[data-theme="light"] input:focus,
+[data-theme="light"] textarea:focus,
+[data-theme="light"] select:focus {
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(212,160,23,0.15) !important;
+  outline: none !important;
+}
+
+[data-theme="light"] .input::placeholder { color: var(--text-muted) !important; }
+
+[data-theme="light"] .table-header {
+  background: var(--bg-hover) !important;
+  color: var(--text-muted) !important;
+}
+
+[data-theme="light"] .table-row {
+  border-bottom-color: var(--bg-border) !important;
+}
+
+[data-theme="light"] .table-row:hover {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="light"] .btn-ghost {
+  background: #ffffff !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--bg-border) !important;
+}
+
+[data-theme="light"] .btn-ghost:hover {
+  background: var(--bg-hover) !important;
+}
+
+[data-theme="light"] [class*="modal"],
+[data-theme="light"] [class*="dropdown"],
+[data-theme="light"] [role="dialog"] {
+  background: var(--bg-surface) !important;
+  border-color: var(--bg-border) !important;
+  box-shadow: var(--shadow-modal) !important;
+}
+
+/* Nav active item */
+[data-theme="light"] .nav-item-active {
+  background: rgba(212,160,23,0.1) !important;
+  color: var(--gold) !important;
+  border-left-color: var(--gold) !important;
+}
+
+/* ══ Scrollbar ═══════════════════════════════════════════════════════════════ */
+::-webkit-scrollbar         { width: 6px; height: 6px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { border-radius: 999px; }
+
+[data-theme="dark"]  ::-webkit-scrollbar-thumb       { background: rgba(255,255,255,0.12); }
+[data-theme="dark"]  ::-webkit-scrollbar-thumb:hover  { background: rgba(255,255,255,0.22); }
+[data-theme="light"] ::-webkit-scrollbar-track        { background: #e4e7ec; }
+[data-theme="light"] ::-webkit-scrollbar-thumb        { background: #adb5bd; }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover  { background: #868e96; }
+
+/* ══ Theme switch transition ═════════════════════════════════════════════════ */
+*, *::before, *::after {
+  transition: background-color 0.2s ease, border-color 0.2s ease,
+              color 0.15s ease, box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
