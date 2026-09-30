@@ -75,8 +75,8 @@ export default function Hero() {
           </span>
         </div>
 
-        <h1 className="font-headline-xl text-headline-sm sm:text-headline-md md:text-headline-lg lg:text-headline-xl text-on-primary max-w-[90%] sm:max-w-xl md:max-w-2xl lg:max-w-4xl tracking-tight drop-shadow-sm font-extrabold mb-space-sm sm:mb-space-md leading-tight">
-          <AnimatedHeroPhrase className="font-headline-xl text-headline-sm sm:text-headline-md md:text-headline-lg lg:text-headline-xl text-on-primary" />
+        <h1 className="mb-space-sm max-w-[90%] tracking-tight text-on-primary drop-shadow-sm sm:mb-space-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl">
+          <AnimatedHeroPhrase className="block whitespace-nowrap text-[2rem] font-black leading-[0.95] tracking-[-0.04em] text-on-primary sm:text-[3.25rem] md:text-[4rem] lg:text-[5rem]" />
         </h1>
 
         <p className="font-body-md text-body-md sm:font-body-lg sm:text-body-lg text-primary-fixed max-w-[90%] sm:max-w-md md:max-w-xl lg:max-w-2xl mx-auto leading-relaxed mb-space-lg sm:mb-space-xl">
